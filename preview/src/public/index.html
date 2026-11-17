@@ -511,7 +511,7 @@
         </header>
         <div class="banner">
           <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 13.2 4v3.4c0 2.8-2.1 4.6-5.2 5.5-3.1-.9-5.2-2.7-5.2-5.5V4Z" fill="none" stroke="#d4c4ff" stroke-width="1.2"/></svg>
-          <p><strong>Proof of concept.</strong> Charts and totals are sample data. Switching workspace previews a project or the SCF operator. Integration runs the live collector.</p>
+          <p id="proof"><strong>Proof of concept.</strong> Charts and totals are sample data. Switching workspace previews a project or the SCF operator. Integration runs the live collector.</p>
         </div>
         <div class="toolbar">
           <div id="tabs" class="tabs" role="tablist" aria-label="Sections">
@@ -635,6 +635,7 @@ const state = {
   erasure: {}, audit: [], privacyProject: 'alpha', privacyAction: 'erase', privacyStream: 'both', privacyPeriod: 'range', privacyReason: '', privacyConfirm: '', privacyStep: '', privacyError: '',
   waiting: [{ id: 'quill', name: 'Quill', detail: 'Sample application', proof: 'SCF project link', status: 'pending' }],
   keys: [{ id: 'live', name: 'Ecosystem reader', hint: 'scf_mtr_9f3a2c1e', revoked: false }],
+  umami: null, umamiLabels: null, umamiWhen: null,
   freshKey: '',
   extra: { alpha: { views: 0, paths: {}, api: {} }, beta: { views: 0, paths: {}, api: {} } },
 };
@@ -725,7 +726,7 @@ function stats(id) {
   const client = sum(api.filter((row) => row.status >= 400 && row.status < 500), (row) => row.count);
   const busiest = api.slice().sort((a, b) => b.count - a.count)[0];
   const slowest = api.slice().sort((a, b) => (b.p95 ?? 0) - (a.p95 ?? 0))[0];
-  return {
+  const built = {
     id, views, visitors, bounce, duration: durationValue,
     pages: pageRows, api, requests, errors, client, errorRate: requests ? errors / requests : 0,
     p50: requests ? busiest?.p50 ?? null : null, p95: requests ? slowest?.p95 ?? null : null,
@@ -738,6 +739,26 @@ function stats(id) {
     browsers: shareRows(profile.browsers, visitors),
     os: shareRows(profile.os, visitors),
     delta: profile.delta,
+  };
+  const live = state.umami?.[id];
+  if (!live) return built;
+  const webOff = streamOff(id, 'web');
+  const zeros = (count) => Array.from({ length: (live.seriesViews || []).length }, () => 0);
+  return {
+    ...built,
+    views: webOff ? 0 : live.views,
+    visitors: webOff ? 0 : live.visitors,
+    bounce: webOff ? 0 : live.bounce,
+    duration: webOff ? 0 : live.duration,
+    pages: webOff ? live.pages.map((page) => ({ ...page, views: 0, visitors: 0 })) : live.pages,
+    seriesViews: webOff ? zeros() : live.seriesViews,
+    seriesVisitors: webOff ? zeros() : live.seriesVisitors,
+    referrers: webOff ? live.referrers.map((row) => ({ ...row, count: 0 })) : live.referrers,
+    countries: webOff ? live.countries.map((row) => ({ ...row, count: 0 })) : live.countries,
+    devices: webOff ? live.devices.map((row) => ({ ...row, count: 0 })) : live.devices,
+    browsers: webOff ? live.browsers.map((row) => ({ ...row, count: 0 })) : live.browsers,
+    os: webOff ? live.os.map((row) => ({ ...row, count: 0 })) : live.os,
+    delta: { ...built.delta, ...live.delta },
   };
 }
 function listingOf(id) {
@@ -807,15 +828,12 @@ function overviewKpis(data) {
     '</section>';
 }
 const DEMO_END = new Date(Date.UTC(2026, 10, 17));
-function windowLabel() {
-  const end = new Date(DEMO_END);
-  const back = state.range === '24h' ? 0 : state.range === '7d' ? 6 : state.range === '30d' ? 29 : 89;
-  const start = new Date(end);
-  start.setUTCDate(end.getUTCDate() - back);
-  const fmt = (date) => date.toISOString().slice(0, 10);
-  return back === 0 ? fmt(end) : fmt(start) + ' → ' + fmt(end);
-}
 function dayLabels() {
+  if (state.umamiLabels?.length) {
+    const labels = state.umamiLabels;
+    const step = labels.length > 16 ? Math.ceil(labels.length / 6) : 1;
+    return labels.map((label, index) => (index % step === 0 || index === labels.length - 1 ? label : ''));
+  }
   const count = POINTS[state.range];
   if (state.range === '24h') return Array.from({ length: count }, (_, index) => (index % 6 === 0 ? String(index).padStart(2, '0') + ':00' : ''));
   const span = state.range === '7d' ? 6 : state.range === '30d' ? 29 : 89;
@@ -827,6 +845,14 @@ function dayLabels() {
     return date.toLocaleDateString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   });
 }
+function windowLabel() {
+  const end = new Date(DEMO_END);
+  const back = state.range === '24h' ? 0 : state.range === '7d' ? 6 : state.range === '30d' ? 29 : 89;
+  const start = new Date(end);
+  start.setUTCDate(end.getUTCDate() - back);
+  const fmt = (date) => date.toISOString().slice(0, 10);
+  return back === 0 ? fmt(end) : fmt(start) + ' → ' + fmt(end);
+}
 function addSeries(ids, key) {
   const series = ids.map((id) => stats(id)[key]);
   return series[0].map((_, index) => series.reduce((total, values) => total + values[index], 0));
@@ -837,6 +863,7 @@ function ordinal(day) {
   return day + suffix;
 }
 function pointWhen(index, count) {
+  if (state.umamiWhen?.[index]) return state.umamiWhen[index];
   const date = new Date(DEMO_END);
   if (state.range === '24h') {
     date.setUTCHours(index, 0, 0, 0);
@@ -958,7 +985,7 @@ function qualityCharts(ids) {
   const weight = sum(parts, (part) => part.visitors) || 1;
   const bounce = sum(parts, (part) => part.bounce * part.visitors) / weight;
   const visit = sum(parts, (part) => part.duration * part.visitors) / weight;
-  const count = POINTS[state.range];
+  const count = parts[0].seriesViews.length || POINTS[state.range];
   return '<div class="layout split"><section class="panel"><div class="panel-head"><div><h2>Bounce rate</h2><p>Share of visits with a single page. Click a bar to keep that day open.</p></div></div>' + groupedChart([{ name: 'Bounce', values: band(seedOf(ids[0], 8), count, bounce, bounce * 0.12), color: '#e4c48a', unit: 'pct' }], 'Bounce rate') + '</section><section class="panel"><div class="panel-head"><div><h2>Visit duration</h2><p>First event to last event, when the visit has more than one page.</p></div></div>' + groupedChart([{ name: 'Duration', values: band(seedOf(ids[0], 9), count, visit, visit * 0.16), color: '#9ed9bc', unit: 'sec' }], 'Visit duration') + '</section></div>';
 }
 function latencyChart(ids) {
@@ -1392,6 +1419,12 @@ function render() {
   title.textContent = copy[0];
   lede.textContent = copy[1];
   document.title = copy[0] + ' · Stellar ecosystem analytics';
+  const proof = document.querySelector('#proof');
+  if (proof) {
+    proof.innerHTML = state.umami
+      ? '<strong>Proof of concept.</strong> Web numbers are queried from Umami. API numbers stay on the collector sample. Integration runs the live collector.'
+      : '<strong>Proof of concept.</strong> Charts and totals are sample data. Switching workspace previews a project or the SCF operator. Integration runs the live collector.';
+  }
   let html = '';
   if (state.view === 'overview') {
     html = overviewKpis(data) + activity(ids) + apiCurve(ids) + projectTable(ids) + facts();
@@ -1487,7 +1520,25 @@ function buildRange() {
     option.textContent = labels[range];
     host.append(option);
   }
-  host.addEventListener('change', () => { state.range = host.value; render(); });
+  host.addEventListener('change', async () => {
+    state.range = host.value;
+    await loadUmami();
+    render();
+  });
+}
+async function loadUmami() {
+  try {
+    const response = await fetch('/v1/umami?range=' + encodeURIComponent(state.range));
+    if (!response.ok) return;
+    const body = await response.json();
+    if (!body.projects) return;
+    state.umami = body.projects;
+    const first = body.projects.alpha || body.projects.beta;
+    state.umamiLabels = first?.labels || null;
+    state.umamiWhen = first?.when || null;
+  } catch {
+    state.umami = null;
+  }
 }
 async function run(action) {
   if (state.busy) return;
@@ -1777,6 +1828,7 @@ document.querySelector('#gate form').addEventListener('submit', async (event) =>
 });
 
 buildRange();
+await loadUmami();
 const roster = await fetch('/demo/roster');
 if (roster.ok) {
   state.roster = await roster.json();

@@ -7,6 +7,7 @@ import { parseOtlp } from './otlp.ts';
 import { type DemoRoster } from './seed.ts';
 import { PgStore } from './pg-store.ts';
 import { MemoryStore, type Principal, type Store } from './store.ts';
+import { umamiDashboard } from './umami.ts';
 
 const pagePath = join(dirname(fileURLToPath(import.meta.url)), 'public', 'index.html');
 
@@ -64,6 +65,17 @@ export async function startServer(options: { port?: number; store: Store; demo?:
       if (req.method === 'GET' && url.pathname === '/demo/roster') {
         if (!options.demo) return send(res, 404, { error: 'not found' });
         return send(res, 200, options.demo);
+      }
+      if (req.method === 'GET' && url.pathname === '/v1/umami') {
+        const board = await umamiDashboard({
+          UMAMI_URL: process.env.UMAMI_URL,
+          UMAMI_USER: process.env.UMAMI_USER,
+          UMAMI_PASSWORD: process.env.UMAMI_PASSWORD,
+          UMAMI_ALPHA: process.env.UMAMI_ALPHA,
+          UMAMI_BETA: process.env.UMAMI_BETA,
+        }, url.searchParams.get('range') || '30d');
+        if (!board) return send(res, 404, { error: 'Umami is not configured' });
+        return send(res, 200, board);
       }
       const principal = await authorize(options.store, req);
       if (!principal) return send(res, 401, { error: 'missing or unknown token' });

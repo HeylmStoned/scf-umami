@@ -2,10 +2,11 @@ import { normalizePath } from './normalize.ts';
 import { parseOtlp } from './otlp.ts';
 import { DEMO_ROSTER, seedDemo } from './seed.ts';
 import { MemoryStore, type Principal, type Store } from './store.ts';
+import { umamiDashboard, type UmamiEnv } from './umami.ts';
 
 const MAX_BODY = 1_000_000;
 
-type Env = {
+type Env = UmamiEnv & {
   ASSETS: { fetch: (input: Request) => Promise<Response> };
 };
 
@@ -75,6 +76,11 @@ export default {
       }
       if (request.method === 'GET' && url.pathname === '/demo/roster') {
         return json(200, DEMO_ROSTER);
+      }
+      if (request.method === 'GET' && url.pathname === '/v1/umami') {
+        const board = await umamiDashboard(env, url.searchParams.get('range') || '30d');
+        if (!board) return json(404, { error: 'Umami is not configured' });
+        return json(200, board);
       }
 
       const principal = await store.principal(bearer(request));

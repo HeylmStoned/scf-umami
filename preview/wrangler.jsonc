@@ -5,6 +5,12 @@
   "compatibility_date": "2025-09-23",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "vars": {
+    "UMAMI_URL": "https://umami-production-f59a3814.up.railway.app",
+    "UMAMI_USER": "admin",
+    "UMAMI_ALPHA": "ed40617f-b674-4dd6-8ab9-24cba60dac9d",
+    "UMAMI_BETA": "acae1522-a824-4f00-8042-406efe12be9e"
+  },
   "assets": {
     "directory": "./src/public",
     "binding": "ASSETS",
