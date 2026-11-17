@@ -1,0 +1,24 @@
+{
+  "name": "scf-analytics-poc",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Spike for the SCF Web and API Analytics RFP: OTel cut-down, path normalization, tenant isolation.",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "demo": "tsx src/demo.ts",
+    "test": "tsx --test src/normalize.test.ts src/otlp.test.ts src/server.test.ts"
+  },
+  "engines": {
+    "node": ">=20.19"
+  },
+  "dependencies": {
+    "pg": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "@types/pg": "^8.15.5",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

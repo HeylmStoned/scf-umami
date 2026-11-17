@@ -1,0 +1,13 @@
+{
+  "name": "scf-analytics-poc",
+  "account_id": "d42dc3af363571985df0ec8f6d52011d",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-09-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": "./src/public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}

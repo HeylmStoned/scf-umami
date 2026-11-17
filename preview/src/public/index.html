@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Prism Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Fraunces:opsz,wght@9..144,520;9..144,620&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #100f0d;
+      --rail: #0c0b0a;
+      --surface: #181714;
+      --surface-2: #211f1b;
+      --line: rgba(243, 239, 230, 0.09);
+      --line-strong: rgba(243, 239, 230, 0.16);
+      --text: #f3efe6;
+      --muted: #a8a295;
+      --faint: #746e64;
+      --accent: #d4c4ff;
+      --good: #9ed9bc;
+      --warn: #e4c48a;
+      --bad: #f0a090;
+      --serif: "Fraunces", Georgia, serif;
+      --sans: "DM Sans", "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", Consolas, monospace;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background:
+        radial-gradient(900px 420px at 12% -10%, rgba(212, 196, 255, 0.08), transparent 55%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14.5px;
+      line-height: 1.45;
+    }
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: 0.42; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    ::selection { background: var(--accent); color: #1a1428; }
+    code, .mono { font-family: var(--mono); font-size: 12.5px; }
+    h1, h2, p { margin: 0; }
+    .app { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100vh; }
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 22px 14px 16px;
+      background: var(--rail);
+      border-right: 1px solid var(--line);
+    }
+    .brand { display: flex; flex-direction: row; align-items: center; gap: 10px; padding: 0 8px; color: var(--text); text-decoration: none; }
+    .brand strong { display: block; font-weight: 600; font-size: 18px; letter-spacing: -0.03em; line-height: 1; text-transform: lowercase; }
+    .brand span { display: block; color: var(--muted); font-size: 12px; }
+    .brand strong { display: block; font-family: var(--serif); font-weight: 520; font-size: 22px; letter-spacing: -0.03em; line-height: 1; }
+    .brand span { color: var(--muted); font-size: 12.5px; }
+    .kicker { margin: 8px 8px 0; color: var(--faint); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+    .workspace-menu { position: relative; }
+    #workspace, .menu button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    #workspace { color: var(--text); }
+    #workspace svg { margin-left: auto; opacity: 0.7; }
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: #1a1428;
+      font-weight: 600;
+      font-size: 13px;
+      flex: none;
+    }
+    .menu {
+      position: absolute;
+      z-index: 5;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 6px;
+      background: #211f1b;
+      border: 1px solid var(--line-strong);
+      border-radius: 12px;
+    }
+    .menu button { border-color: transparent; background: transparent; color: var(--text); }
+    .menu button[aria-pressed="true"], .menu button:hover { background: rgba(212, 196, 255, 0.14); }
+    .workspace-note { margin: -10px 8px 0; color: var(--faint); font-size: 12px; }
+    nav { display: flex; flex-direction: column; gap: 4px; }
+    nav button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 10px;
+      padding: 9px 10px;
+    }
+    .nav-label { display: flex; align-items: center; gap: 10px; }
+    nav button svg { flex: none; opacity: 0.85; }
+    nav button[aria-current="page"] { background: rgba(212, 196, 255, 0.16); color: var(--text); }
+    nav button:hover:not([aria-current="page"]) { color: var(--text); }
+    .count {
+      min-width: 22px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+    nav button[aria-current="page"] .count { background: rgba(16, 15, 13, 0.35); color: var(--text); }
+    .promo {
+      margin-top: auto;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface);
+    }
+    .promo strong { display: block; margin: 8px 0 6px; font-family: var(--serif); font-weight: 520; font-size: 18px; letter-spacing: -0.03em; }
+    .promo p { margin: 0; color: var(--muted); font-size: 13px; }
+    .promo-add { width: 100%; margin-top: 12px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); border-radius: 10px; padding: 8px 10px; }
+    .umami { display: flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 13px; padding: 0 8px; }
+    .umami:hover { color: var(--accent); }
+    .demo-id { display: flex; align-items: center; gap: 10px; padding: 4px 8px 0; }
+    .demo-id strong { display: block; font-size: 13px; font-weight: 600; }
+    .demo-id span { color: var(--faint); font-size: 12px; }
+    .crumb-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; color: var(--faint); font-size: 13px; }
+    .crumb span { margin: 0 6px; }
+    .demo-pill { border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px 10px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .range-wrap { display: flex; align-items: center; gap: 10px; }
+    .window { color: var(--faint); font-family: var(--mono); font-size: 12px; }
+    .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 12px; }
+    .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+    .mini { display: flex; flex-direction: column; }
+    .mini div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+    .col h2, .facts h2 { margin-bottom: 4px; }
+    .avatar.tiny { width: 28px; height: 28px; border-radius: 8px; }
+    .avatar.coral { background: #f0a090; }
+    .who { align-items: center; }
+    .who strong { display: block; font-weight: 600; }
+    .table-tools { display: flex; gap: 8px; margin-bottom: 12px; }
+    .table-tools input, .table-tools select, .try input {
+      border: 1px solid var(--line-strong);
+      background: #100f0d;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .table-tools input { flex: 1; }
+    .try input { width: 100%; margin-top: 8px; }
+    .try-out { margin: 10px 0 0; color: var(--accent); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips span { font-family: var(--mono); font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; color: var(--muted); }
+    .axis.dense span { flex: 1 1 0; text-align: center; min-width: 0; font-size: 10px; }
+    .hover-chart { position: relative; }
+    .bars-hit { display: flex; align-items: stretch; height: 220px; gap: 2px; }
+    .hit { position: relative; flex: 1 1 0; min-width: 0; display: flex; align-items: flex-end; justify-content: center; border-radius: 4px; }
+    .hit:hover, .hit:focus-visible, .hit.on { background: rgba(212, 196, 255, 0.14); outline: none; }
+    .day-detail { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); }
+    .day-detail strong { width: 100%; color: var(--text); font-size: 13px; }
+    .pair { display: flex; align-items: flex-end; justify-content: center; gap: 1px; width: 80%; height: 100%; }
+    .pair i { display: block; width: 46%; border-radius: 2px 2px 0 0; min-height: 2px; }
+    .tip { position: absolute; z-index: 5; pointer-events: none; transform: translate(-50%, -100%); background: #211f1b; border: 1px solid var(--line-strong); border-radius: 10px; padding: 8px 10px; min-width: 148px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
+    .tip strong { display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
+    .tip div { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }
+    .tip b { margin-left: auto; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .tip em { color: var(--faint); font-style: normal; font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
+    .curve svg { width: 100%; height: 220px; display: block; }
+    .curve-hits { position: absolute; left: 0; right: 0; top: 0; height: 220px; display: flex; }
+    .curve .hit { height: 100%; }
+    .curve .hit:hover, .curve .hit:focus-visible { background: linear-gradient(to right, transparent calc(50% - 0.5px), rgba(243, 239, 230, 0.45) calc(50% - 0.5px), rgba(243, 239, 230, 0.45) calc(50% + 0.5px), transparent calc(50% + 0.5px)); }
+    .kpi-more { display: none; margin-top: 8px; color: var(--faint); font-size: 12px; }
+    .kpi:hover .kpi-more, .kpi:focus-within .kpi-more { display: block; }
+    .pie-wrap { position: relative; display: inline-flex; }
+    .pie-wrap .tip { top: 4px; left: 50%; min-width: 160px; }
+    .bars > div:hover .fill { filter: brightness(1.2); }
+    .pick .quiet { display: block; font-size: 11.5px; }
+    .privacy-card { margin-top: 12px; }
+    .privacy-card h2 { color: var(--text); font-size: 16px; margin: 8px 0; }
+    .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+    .choice-row button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; }
+    .choice-row button[aria-pressed="true"] { border-color: rgba(212, 196, 255, 0.7); }
+    .choice-row small { color: var(--muted); }
+    .data-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .data-fields select, .privacy-form textarea, .privacy-form input, .privacy-form .project-select {
+      width: 100%; margin-top: 6px; border: 1px solid var(--line-strong); background: #100f0d; color: var(--text); border-radius: 10px; padding: 8px 12px;
+    }
+    .impact-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 12px 0; }
+    .impact-grid div { border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+    .impact-grid span { display: block; color: var(--muted); font-size: 12px; }
+    .impact-grid strong { font-family: var(--serif); font-size: 28px; font-weight: 520; }
+    .explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .explain p { color: var(--muted); margin-top: 4px; }
+    .danger { border: 0; background: #f0a090; color: #1a1428; font-weight: 600; }
+    .danger:disabled { opacity: 0.45; }
+    .privacy-form label { display: block; margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .form-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; }
+    .metric-card.on { border-color: rgba(212, 196, 255, 0.55); }
+    .metric-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .metric-title { border: 0; background: transparent; color: var(--text); font-weight: 600; font-size: 16px; padding: 0; text-align: left; }
+    .donut { width: 54px; height: 54px; flex: none; }
+    .donut.large { width: 168px; height: 168px; }
+    .donut .slice { cursor: pointer; }
+    .picks { display: flex; flex-direction: column; }
+    .pick { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--text); padding: 8px 0; text-align: left; }
+    .pick.on { color: var(--accent); }
+    .metric-split { display: grid; grid-template-columns: 180px minmax(150px, 220px) minmax(0, 1fr); gap: 18px; align-items: center; }
+    .metric-legend { display: flex; flex-direction: column; }
+    .status-pie { display: flex; justify-content: center; margin: 4px 0 12px; }
+    .switch { display: inline-flex; gap: 4px; padding: 3px; background: var(--surface-2); border-radius: 12px; }
+    .switch button { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 7px 12px; }
+    .switch button[aria-pressed="true"] { background: var(--text); color: #16140f; }
+    .key-line { margin-top: 10px; color: var(--accent); word-break: break-all; }
+    .manage-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .workspace { padding: 28px 32px 64px; }
+    .workspace-inner { width: 100%; }
+    .brand { color: var(--text); }
+    .brand svg { display: block; height: 28px; width: auto; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+    .eyebrow { color: var(--faint); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+    h1 { font-family: var(--serif); font-weight: 520; font-size: 36px; letter-spacing: -0.035em; line-height: 1.05; margin-top: 8px; }
+    .lede { color: var(--muted); margin-top: 8px; }
+    .top-tools { display: flex; align-items: center; gap: 10px; flex-shrink: 0; padding-top: 8px; }
+    .ghost, .primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    .ghost { border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); }
+    .primary { border: 0; background: var(--accent); color: #1a1428; font-weight: 600; }
+    .primary .free { font-weight: 500; padding-left: 8px; border-left: 1px solid rgba(26, 20, 40, 0.22); }
+    .banner {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 18px 0 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(212, 196, 255, 0.28);
+      border-radius: 12px;
+      background: rgba(212, 196, 255, 0.08);
+      color: var(--muted);
+    }
+    .banner strong { color: var(--text); font-weight: 600; }
+    .banner svg { flex: none; margin-top: 2px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .tabs { display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+    .tabs button { border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 7px 14px; }
+    .tabs button[aria-current="page"] { background: var(--surface-2); color: var(--text); }
+    .range select {
+      appearance: none;
+      border: 1px solid var(--line-strong);
+      background: var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4.2 6 8l4-3.8' fill='none' stroke='%23a8a295' stroke-width='1.4'/></svg>") no-repeat right 12px center;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 8px 34px 8px 12px;
+    }
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .kpi, .panel, .card, .receipt, .install, .modal form {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .kpi { padding: 16px 16px 18px; }
+    .kpi-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .kpi-top svg { color: var(--faint); }
+    .kpi .label, .panel h2, .card h2, .install h2, .modal h2 {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .kpi .value { font-family: var(--serif); font-size: 36px; font-weight: 520; letter-spacing: -0.04em; margin-top: 12px; font-variant-numeric: tabular-nums; line-height: 1; }
+    .kpi .value.warn { color: var(--warn); }
+    .kpi .value.bad { color: var(--bad); }
+    .kpi .hint { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+    .up { color: var(--good); }
+    .down { color: var(--bad); }
+    .chart { width: 100%; height: 220px; display: block; }
+    .axis { display: flex; justify-content: space-between; color: var(--faint); font-size: 11px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .legend-row { display: flex; gap: 16px; margin-bottom: 8px; color: var(--muted); font-size: 12.5px; }
+    .legend-row i { width: 8px; height: 8px; border-radius: 99px; display: inline-block; margin-right: 6px; }
+    .table-wrap { overflow-x: auto; }
+    .layout { display: grid; gap: 12px; margin-top: 12px; }
+    .two { grid-template-columns: 1.3fr 0.7fr; }
+    .split { grid-template-columns: 1fr 1fr; }
+    .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel, .install { padding: 18px 18px 16px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+    .panel-head h2 { margin: 0; color: var(--text); font-size: 16px; font-weight: 600; }
+    .panel-head p, .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .badge { border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px 8px; color: var(--faint); font-size: 12px; white-space: nowrap; }
+    .panel h2, .install h2, .modal h2 { margin-bottom: 14px; }
+    .plot { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px; align-items: stretch; }
+    .yticks { display: flex; flex-direction: column; justify-content: space-between; color: var(--faint); font-size: 11px; text-align: right; font-variant-numeric: tabular-nums; }
+    .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 24px; background: rgba(8, 7, 6, 0.72); }
+    .modal form { width: min(420px, 100%); padding: 18px; }
+    .modal input { width: 100%; margin: 8px 0 12px; border: 1px solid var(--line-strong); background: #100f0d; border-radius: 10px; padding: 10px 12px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .stack { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--surface-2); }
+    .stack span { display: block; height: 100%; }
+    .c0 { background: #d4c4ff; }
+    .c1 { background: #8f82b8; }
+    .c2 { background: #6d6558; }
+    .c3 { background: #463f36; }
+    .c4 { background: #2c2924; }
+    .s-ok { background: var(--good); }
+    .s-warn { background: var(--warn); }
+    .s-bad { background: var(--bad); }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 12px; }
+    .legend div { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }
+    .swatch { width: 8px; height: 8px; border-radius: 99px; }
+    .bars { display: flex; flex-direction: column; gap: 12px; }
+    .bar-meta, .route-line { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+    .bar-meta span, .num { font-variant-numeric: tabular-nums; color: var(--muted); }
+    .track { margin-top: 6px; height: 4px; border-radius: 99px; background: #2a2723; }
+    .fill { height: 100%; border-radius: 99px; background: var(--accent); }
+    .project {
+      position: relative;
+      overflow: hidden;
+      padding: 18px 18px 16px;
+    }
+    .project::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; }
+    .project.lavender::before { background: var(--accent); }
+    .project.coral::before { background: var(--bad); }
+    .project .name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .project .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; margin-top: 16px; }
+    .project .stats strong { display: block; font-family: var(--serif); font-size: 26px; font-weight: 520; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .project .stats span, .quiet { color: var(--muted); font-size: 12.5px; }
+    .dot { width: 8px; height: 8px; border-radius: 99px; display: inline-block; }
+    .dot.lavender { background: var(--accent); }
+    .dot.coral { background: var(--bad); }
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .filters button, .ghost {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 11px;
+    }
+    .filters button[aria-pressed="true"] { background: var(--text); color: #16140f; border-color: var(--text); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 11px 12px 11px 0; vertical-align: middle; }
+    th { color: var(--faint); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+    th button { border: 0; background: transparent; color: inherit; letter-spacing: inherit; text-transform: inherit; font-size: inherit; font-weight: inherit; padding: 0; }
+    th button[aria-pressed="true"] { color: var(--text); }
+    td { border-top: 1px solid var(--line); }
+    tr:hover td { background: rgba(243, 239, 230, 0.02); }
+    .pill { display: inline-flex; min-width: 44px; justify-content: center; border-radius: 999px; padding: 2px 8px; font-variant-numeric: tabular-nums; font-size: 12px; }
+    .pill.ok { color: var(--good); background: rgba(158, 217, 188, 0.12); }
+    .pill.warn { color: var(--warn); background: rgba(228, 196, 138, 0.12); }
+    .pill.bad { color: var(--bad); background: rgba(240, 160, 144, 0.14); }
+    .who { display: inline-flex; align-items: center; gap: 8px; }
+    .card {
+      text-align: left;
+      padding: 16px;
+      width: 100%;
+    }
+    .card strong { display: block; margin: 8px 0 6px; font-weight: 600; }
+    .card span, .install p { color: var(--muted); }
+    .card:hover:not(:disabled) { border-color: rgba(212, 196, 255, 0.45); }
+    .receipt { margin-top: 12px; padding: 16px 18px; display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 8px 16px; }
+    .receipt.ok { background: rgba(158, 217, 188, 0.06); }
+    .receipt.blocked { background: rgba(212, 196, 255, 0.07); }
+    .receipt.bad { background: rgba(240, 160, 144, 0.08); }
+    .receipt dt { color: var(--faint); }
+    .receipt dd { margin: 0; }
+    .install { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: start; }
+    .install pre {
+      grid-column: 1 / -1;
+      margin: 8px 0 0;
+      padding: 12px 14px;
+      overflow: auto;
+      background: #100f0d;
+      border-radius: 12px;
+      color: #e7e1d6;
+      line-height: 1.55;
+    }
+    .empty { color: var(--muted); padding: 8px 0 12px; }
+    .caption { color: var(--faint); font-size: 12.5px; margin-top: 12px; }
+    .gate { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .gate form { width: min(420px, 100%); padding: 22px; }
+    .gate h1 { font-size: 32px; }
+    .gate input {
+      width: 100%;
+      margin: 16px 0 10px;
+      border: 1px solid var(--line-strong);
+      background: #100f0d;
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .gate button { width: 100%; border: 0; border-radius: 12px; padding: 11px 14px; background: var(--text); color: #16140f; }
+    .enter { animation: rise 220ms ease; }
+    @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .enter { animation: none; } }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      nav { flex-direction: row; overflow: auto; }
+      .promo { display: none; }
+      .kpis, .two, .split, .facts { grid-template-columns: 1fr 1fr; }
+      .cols { grid-template-columns: 1fr 1fr; }
+      .metric-split { grid-template-columns: 1fr; }
+      .top, .toolbar { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 680px) {
+      .workspace { padding: 20px 16px 48px; }
+      h1 { font-size: 32px; }
+      .kpis, .two, .split, .three, .receipt, .install, .facts, .cols { grid-template-columns: 1fr; }
+      .install pre { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gate" class="gate" hidden>
+    <form class="panel">
+      <p class="eyebrow">Web and API analytics</p>
+      <h1>Open a project</h1>
+      <p class="lede">Paste a project or operator token.</p>
+      <input id="token" name="token" autocomplete="off" placeholder="Token" />
+      <button type="submit">Open</button>
+      <p id="gate-error" class="caption"></p>
+    </form>
+  </div>
+  <div id="app" class="app" hidden>
+    <aside>
+      <a class="brand" href="https://stellar.org" target="_blank" rel="noreferrer">
+        <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M12.003 1.716c-1.37 0-2.7.27-3.948.78A10.18 10.18 0 0 0 2.66 7.901a10.136 10.136 0 0 0-.797 3.954c0 .258.01.516.027.775a1.942 1.942 0 0 1-1.055 1.88L0 14.934v1.902l2.463-1.26.072-.032v.005l.77-.39.758-.385.066-.039 14.807-7.56 1.666-.847 3.392-1.732V2.694L17.792 5.86 3.744 13.025l-.104.055-.017-.115a8.286 8.286 0 0 1-.071-1.105c0-2.255.88-4.377 2.474-5.977a8.462 8.462 0 0 1 2.71-1.82 8.513 8.513 0 0 1 3.2-.654h.067a8.41 8.41 0 0 1 4.09 1.055l1.628-.83.126-.066a10.11 10.11 0 0 0-5.845-1.853zM24 7.143 5.047 16.808l-1.666.847L0 19.382v1.902l3.282-1.671 2.91-1.485 14.058-7.153.105-.055.016.115c.05.369.072.743.072 1.11 0 2.255-.88 4.383-2.475 5.978a8.461 8.461 0 0 1-2.71 1.82 8.305 8.305 0 0 1-3.2.654h-.06c-1.441 0-2.86-.369-4.102-1.061l-.066.033-1.683.857c.594.418 1.232.776 1.903 1.062a10.11 10.11 0 0 0 3.947.797 10.09 10.09 0 0 0 7.17-2.975 10.136 10.136 0 0 0 2.969-7.18c0-.259-.005-.523-.027-.781a1.942 1.942 0 0 1 1.055-1.88L24 9.044z"/>
+        </svg>
+        <span><strong>stellar</strong><span>ecosystem analytics</span></span>
+      </a>
+      <div>
+        <p class="kicker">Workspace</p>
+        <div class="workspace-menu">
+          <button type="button" id="workspace" aria-haspopup="listbox" aria-expanded="false" aria-controls="switcher">
+            <span class="avatar" id="workspace-mark">N</span>
+            <span id="workspace-name">Northwind</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.2 7 9l4-3.8" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+          </button>
+          <div id="switcher" class="menu" role="listbox" hidden></div>
+        </div>
+      </div>
+      <p id="workspace-note" class="workspace-note">Project · simulated</p>
+      <nav id="nav" aria-label="Sections">
+        <button type="button" data-view="overview"><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="2" width="5" height="5" rx="1" fill="none" stroke="currentColor"/><rect x="9" y="2" width="5" height="5" rx="1" fill="none" stroke="currentColor"/><rect x="2" y="9" width="5" height="5" rx="1" fill="none" stroke="currentColor"/><rect x="9" y="9" width="5" height="5" rx="1" fill="none" stroke="currentColor"/></svg>Overview</span></button>
+        <button type="button" data-view="web"><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor"/><path d="M3 8h10M8 2.8c1.6 1.6 1.6 8.8 0 10.4M8 2.8c-1.6 1.6-1.6 8.8 0 10.4" fill="none" stroke="currentColor"/></svg>Web analytics</span></button>
+        <button type="button" data-view="api"><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5 6 8l2.2 2.2L14 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>API analytics</span></button>
+        <button type="button" data-view="compare"><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="3" rx="1" fill="none" stroke="currentColor"/><rect x="2" y="8" width="12" height="5" rx="1" fill="none" stroke="currentColor"/></svg>Projects</span><span id="project-count" class="count">2</span></button>
+        <button type="button" data-view="manage" id="nav-manage" hidden><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12" fill="none" stroke="currentColor"/><circle cx="5.5" cy="4.5" r="1.3" fill="currentColor"/><circle cx="10.5" cy="8" r="1.3" fill="currentColor"/><circle cx="6.5" cy="11.5" r="1.3" fill="currentColor"/></svg>SCF managing</span></button>
+        <button type="button" data-view="privacy"><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 13.5 4v3.6c0 2.9-2.2 4.8-5.5 5.6C4.7 12.4 2.5 10.5 2.5 7.6V4Z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>Data &amp; privacy</span></button>
+        <button type="button" data-view="integration"><span class="nav-label"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4.5 2.5 8 6 11.5M10 4.5 13.5 8 10 11.5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Integration</span></button>
+      </nav>
+      <div class="promo">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.2 15.5 5v4.2c0 3.4-2.6 5.6-6.5 6.6-3.9-1-6.5-3.2-6.5-6.6V5Z" fill="none" stroke="#d4c4ff" stroke-width="1.3"/></svg>
+        <strong>Built for the ecosystem.</strong>
+        <p>Free analytics. Free enrollment. Enrollment does not list a project on the dashboard.</p>
+        <button class="promo-add" type="button" id="add-side">+ Add a project</button>
+      </div>
+      <a class="umami" href="https://umami.is" target="_blank" rel="noreferrer">◕ Powered by Umami</a>
+      <div class="demo-id">
+        <span class="avatar">S</span>
+        <div><strong>SCF Demo</strong><span>Public demonstration</span></div>
+      </div>
+    </aside>
+    <div class="workspace">
+      <div class="workspace-inner">
+        <div class="crumb-row">
+          <p class="crumb">Workspace <span>›</span> Stellar Community Fund</p>
+          <span class="demo-pill">Demo · synthetic data</span>
+        </div>
+        <header class="top">
+          <div>
+            <p class="eyebrow">Stellar Community Fund</p>
+            <h1 id="title">Ecosystem overview</h1>
+            <p id="lede" class="lede"></p>
+          </div>
+          <div class="top-tools">
+            <button class="ghost" type="button" id="export"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 2v7M4.2 6.2 7 9l2.8-2.8M2.5 11.5h9" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>Export</button>
+            <button class="primary" type="button" id="add-project">+ Add project <span class="free">Free</span></button>
+          </div>
+        </header>
+        <div class="banner">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8 13.2 4v3.4c0 2.8-2.1 4.6-5.2 5.5-3.1-.9-5.2-2.7-5.2-5.5V4Z" fill="none" stroke="#d4c4ff" stroke-width="1.2"/></svg>
+          <p><strong>Proof of concept.</strong> Charts and totals are sample data. Switching workspace previews a project or the SCF operator. Integration runs the live collector.</p>
+        </div>
+        <div class="toolbar">
+          <div id="tabs" class="tabs" role="tablist" aria-label="Sections">
+            <button type="button" data-view="overview">Overview</button>
+            <button type="button" data-view="web">Web</button>
+            <button type="button" data-view="api">API</button>
+          </div>
+          <div class="range-wrap">
+            <span id="range-window" class="window"></span>
+            <label class="range">
+              <span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Time range</span>
+              <select id="range" aria-label="Time range"></select>
+            </label>
+          </div>
+        </div>
+        <div id="stage"></div>
+      </div>
+    </div>
+  </div>
+  <div id="enroll" class="modal" hidden>
+    <form class="panel">
+      <h2>Add a project</h2>
+      <p class="lede">Free enrollment mints a project token. It does not guarantee a listing on the dashboard. SCF decides what is shown.</p>
+      <input id="enroll-id" name="id" autocomplete="off" placeholder="Project id" />
+      <div class="modal-actions">
+        <button class="ghost" type="button" id="enroll-cancel">Cancel</button>
+        <button class="primary" type="submit">Create</button>
+      </div>
+      <p id="enroll-result" class="caption"></p>
+    </form>
+  </div>
+  <script type="module">
+const ACCOUNT = 'G' + 'A'.repeat(55);
+const RANGES = ['24h', '7d', '30d', '90d'];
+const POINTS = { '24h': 24, '7d': 7, '30d': 30, '90d': 30 };
+const SCALE = { '24h': 0.034, '7d': 0.22, '30d': 1, '90d': 2.85 };
+const AXIS = {
+  '24h': ['Yesterday 12:00', '00:00', 'Now'],
+  '7d': ['Nov 11', 'Nov 14', 'Nov 17'],
+  '30d': ['Oct 19', 'Nov 2', 'Nov 17'],
+  '90d': ['Aug 19', 'Oct 3', 'Nov 17'],
+};
+const PRIOR = { '24h': 'prior day', '7d': 'prior week', '30d': 'prior 30 days', '90d': 'prior 90 days' };
+const SNIPPET = '<script defer src="https://s.example/s/v1.0.0/s.js" data-website-id="SITE_ID" integrity="sha384-..." crossorigin="anonymous"><\/script>';
+
+const PROFILES = {
+  alpha: {
+    name: 'Northwind', detail: 'Wallet and payments', hue: 'lavender',
+    pageviews: 48210, visitors: 19440, bounce: 0.384, durationSec: 134, apiRequests: 186400,
+    delta: { pageviews: 0.084, visitors: 0.051, bounce: -0.012, duration: 0.037, requests: 0.112, errors: -0.021 },
+    pages: [
+      { path: '/', share: 0.41, bounce: 0.29, duration: 52 },
+      { path: '/swap', share: 0.22, bounce: 0.33, duration: 96 },
+      { path: '/accounts/:account', share: 0.14, bounce: 0.22, duration: 214 },
+      { path: '/markets/usdc', share: 0.11, bounce: 0.41, duration: 74 },
+      { path: '/portfolio', share: 0.07, bounce: 0.18, duration: 248 },
+      { path: '/docs', share: 0.05, bounce: 0.62, duration: 38 },
+    ],
+    referrers: [
+      { name: 'Direct', share: 0.38 }, { name: 'stellar.org', share: 0.21 }, { name: 'lab.stellar.org', share: 0.14 },
+      { name: 'github.com', share: 0.11 }, { name: 'x.com', share: 0.09 }, { name: 'Discord', share: 0.07 },
+    ],
+    countries: [
+      { name: 'United States', share: 0.28 }, { name: 'Germany', share: 0.14 }, { name: 'Brazil', share: 0.11 },
+      { name: 'Nigeria', share: 0.09 }, { name: 'South Korea', share: 0.08 }, { name: 'United Kingdom', share: 0.07 },
+      { name: 'France', share: 0.06 }, { name: 'Japan', share: 0.05 },
+    ],
+    devices: [{ name: 'Desktop', share: 0.62 }, { name: 'Mobile', share: 0.34 }, { name: 'Tablet', share: 0.04 }],
+    browsers: [{ name: 'Chrome', share: 0.58 }, { name: 'Firefox', share: 0.18 }, { name: 'Safari', share: 0.14 }, { name: 'Edge', share: 0.1 }],
+    os: [
+      { name: 'Windows', share: 0.41 }, { name: 'macOS', share: 0.28 }, { name: 'iOS', share: 0.16 },
+      { name: 'Android', share: 0.12 }, { name: 'Linux', share: 0.03 },
+    ],
+    api: [
+      { service: 'payments', route: '/accounts/:account/payments/:id', status: 200, share: 0.62, p50: 50, p95: 250 },
+      { service: 'payments', route: '/accounts/:account/payments/:id', status: 201, share: 0.12, p50: 100, p95: 250 },
+      { service: 'payments', route: '/accounts/:account/payments/:id', status: 404, share: 0.04, p50: 25, p95: 50 },
+      { service: 'rpc', route: '/contracts/:contract', status: 200, share: 0.18, p50: 100, p95: 250 },
+      { service: 'rpc', route: '/contracts/:contract', status: 500, share: 0.04, p50: 1000, p95: 2500 },
+    ],
+  },
+  beta: {
+    name: 'Harbor', detail: 'Markets', hue: 'coral',
+    pageviews: 30110, visitors: 9800, bounce: 0.512, durationSec: 78, apiRequests: 94200,
+    delta: { pageviews: 0.041, visitors: 0.016, bounce: 0.008, duration: -0.02, requests: 0.063, errors: 0.014 },
+    pages: [
+      { path: '/', share: 0.34, bounce: 0.46, duration: 40 },
+      { path: '/markets/usdc', share: 0.28, bounce: 0.38, duration: 126 },
+      { path: '/trade', share: 0.18, bounce: 0.44, duration: 154 },
+      { path: '/markets/:id', share: 0.12, bounce: 0.52, duration: 88 },
+      { path: '/contracts/:contract', share: 0.08, bounce: 0.61, duration: 36 },
+    ],
+    referrers: [
+      { name: 'Direct', share: 0.31 }, { name: 'stellar.org', share: 0.24 }, { name: 'defillama.com', share: 0.16 },
+      { name: 'x.com', share: 0.14 }, { name: 'github.com', share: 0.09 }, { name: 'Discord', share: 0.06 },
+    ],
+    countries: [
+      { name: 'United States', share: 0.22 }, { name: 'Germany', share: 0.16 }, { name: 'Singapore', share: 0.12 },
+      { name: 'Brazil', share: 0.11 }, { name: 'South Korea', share: 0.09 }, { name: 'Nigeria', share: 0.08 },
+      { name: 'France', share: 0.07 }, { name: 'Japan', share: 0.05 },
+    ],
+    devices: [{ name: 'Desktop', share: 0.71 }, { name: 'Mobile', share: 0.26 }, { name: 'Tablet', share: 0.03 }],
+    browsers: [{ name: 'Chrome', share: 0.64 }, { name: 'Firefox', share: 0.16 }, { name: 'Safari', share: 0.12 }, { name: 'Edge', share: 0.08 }],
+    os: [
+      { name: 'Windows', share: 0.48 }, { name: 'macOS', share: 0.22 }, { name: 'Linux', share: 0.14 },
+      { name: 'Android', share: 0.11 }, { name: 'iOS', share: 0.05 },
+    ],
+    api: [
+      { service: 'quotes', route: '/markets/usdc', status: 200, share: 0.55, p50: 25, p95: 100 },
+      { service: 'quotes', route: '/markets/:id', status: 200, share: 0.22, p50: 50, p95: 250 },
+      { service: 'payments', route: '/accounts/:account/payments/:id', status: 200, share: 0.14, p50: 100, p95: 250 },
+      { service: 'payments', route: '/accounts/:account/payments/:id', status: 500, share: 0.09, p50: 1000, p95: 2500 },
+    ],
+  },
+};
+
+const state = {
+  token: '', role: '', tenantId: '', roster: null, view: 'overview', range: '30d',
+  status: 'all', project: 'all', sort: 'requests', projectQuery: '', projectSort: 'requests', receipt: null, busy: false, painted: '',
+  metric: '', slice: '', approval: false, listing: {}, removed: {},
+  erasure: {}, audit: [], privacyProject: 'alpha', privacyAction: 'erase', privacyStream: 'both', privacyPeriod: 'range', privacyReason: '', privacyConfirm: '', privacyStep: '', privacyError: '',
+  waiting: [{ id: 'quill', name: 'Quill', detail: 'Sample application', proof: 'SCF project link', status: 'pending' }],
+  keys: [{ id: 'live', name: 'Ecosystem reader', hint: 'scf_mtr_9f3a2c1e', revoked: false }],
+  freshKey: '',
+  extra: { alpha: { views: 0, paths: {}, api: {} }, beta: { views: 0, paths: {}, api: {} } },
+};
+
+const stage = document.querySelector('#stage');
+const title = document.querySelector('#title');
+const lede = document.querySelector('#lede');
+let chartSeq = 0;
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]);
+}
+function num(value) { return Number(value || 0).toLocaleString('en'); }
+function pct(value) { return (value * 100).toFixed(1) + '%'; }
+function duration(seconds) {
+  const rounded = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(rounded / 60);
+  const rest = rounded % 60;
+  return minutes ? minutes + 'm ' + String(rest).padStart(2, '0') + 's' : rest + 's';
+}
+function ms(value) {
+  if (value == null) return '—';
+  return value >= 1000 ? (value / 1000).toLocaleString('en', { maximumFractionDigits: 1 }) + ' s' : value + ' ms';
+}
+function nameOf(id) { return PROFILES[id]?.name ?? id; }
+function hueOf(id) { return PROFILES[id]?.hue ?? 'lavender'; }
+function headers() { return { authorization: 'Bearer ' + state.token, 'content-type': 'application/json' }; }
+function tone(code) { return code >= 500 ? 'bad' : code >= 400 ? 'warn' : 'ok'; }
+function sum(rows, pick) { return rows.reduce((total, row) => total + pick(row), 0); }
+function seedOf(id, salt) {
+  let hash = (id === 'alpha' ? 101 : 307) + salt * 17 + state.range.length * 13;
+  return hash >>> 0;
+}
+function wave(seed, count, total) {
+  let value = seed >>> 0;
+  const next = () => {
+    value = (value + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(value ^ (value >>> 15), 1 | value);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const raw = [];
+  for (let index = 0; index < count; index += 1) {
+    const cycle = 0.72 + 0.38 * Math.sin((index / count) * Math.PI * (count > 12 ? 6 : 2));
+    raw.push(cycle * (0.65 + next() * 0.7));
+  }
+  const weight = raw.reduce((total, item) => total + item, 0) || 1;
+  const points = raw.map((item) => Math.max(0, Math.round((item / weight) * total)));
+  const drift = total - points.reduce((total, item) => total + item, 0);
+  points[points.length - 1] += drift;
+  return points;
+}
+function shareRows(items, total) {
+  return items.map((item) => ({ ...item, count: Math.round(item.share * total) }));
+}
+function stats(id) {
+  const profile = PROFILES[id];
+  const extra = state.extra[id];
+  const scale = SCALE[state.range];
+  const baseViews = Math.round(profile.pageviews * scale);
+  let visitors = Math.round(profile.visitors * scale);
+  const bounceShift = state.range === '24h' ? 0.018 : state.range === '90d' ? -0.012 : 0;
+  const durationShift = state.range === '24h' ? -8 : state.range === '7d' ? 4 : 0;
+  let bounce = profile.bounce + bounceShift;
+  let durationValue = profile.durationSec + durationShift;
+  const pages = profile.pages.map((page) => {
+    const views = Math.round(page.share * baseViews) + (extra.paths[page.path] || 0);
+    const ratio = profile.visitors / profile.pageviews;
+    const pageVisitors = Math.min(views, Math.max(1, Math.round(views * ratio * (1.2 - page.bounce))));
+    return { ...page, tenantId: id, views, visitors: pageVisitors };
+  });
+  let views = pages.reduce((total, page) => total + page.views, 0);
+  let pageRows = pages;
+  let api = profile.api.map((row) => {
+    const key = row.service + '|' + row.route + '|' + row.status;
+    return { ...row, tenantId: id, count: Math.round(row.share * Math.round(profile.apiRequests * scale)) + (extra.api[key] || 0) };
+  });
+  if (streamOff(id, 'web')) {
+    views = 0;
+    visitors = 0;
+    bounce = 0;
+    durationValue = 0;
+    pageRows = pages.map((page) => ({ ...page, views: 0, visitors: 0 }));
+  }
+  if (streamOff(id, 'api')) api = api.map((row) => ({ ...row, count: 0 }));
+  const requests = sum(api, (row) => row.count);
+  const errors = sum(api.filter((row) => row.status >= 500), (row) => row.count);
+  const client = sum(api.filter((row) => row.status >= 400 && row.status < 500), (row) => row.count);
+  const busiest = api.slice().sort((a, b) => b.count - a.count)[0];
+  const slowest = api.slice().sort((a, b) => (b.p95 ?? 0) - (a.p95 ?? 0))[0];
+  return {
+    id, views, visitors, bounce, duration: durationValue,
+    pages: pageRows, api, requests, errors, client, errorRate: requests ? errors / requests : 0,
+    p50: requests ? busiest?.p50 ?? null : null, p95: requests ? slowest?.p95 ?? null : null,
+    seriesViews: wave(seedOf(id, 1), POINTS[state.range], views),
+    seriesVisitors: wave(seedOf(id, 2), POINTS[state.range], visitors),
+    seriesRequests: wave(seedOf(id, 3), POINTS[state.range], requests),
+    referrers: shareRows(profile.referrers, visitors),
+    countries: shareRows(profile.countries, visitors),
+    devices: shareRows(profile.devices, visitors),
+    browsers: shareRows(profile.browsers, visitors),
+    os: shareRows(profile.os, visitors),
+    delta: profile.delta,
+  };
+}
+function listingOf(id) {
+  if (state.removed[id]) return 'removed';
+  const waiting = state.waiting.find((item) => item.id === id);
+  if (waiting) return waiting.status;
+  return state.listing[id] || 'listed';
+}
+function scopeIds() {
+  if (state.role !== 'operator') return [state.tenantId];
+  return state.roster.tenants.map((tenant) => tenant.id).filter((id) => PROFILES[id] && listingOf(id) === 'listed');
+}
+function merged(ids, key) {
+  const map = new Map();
+  for (const id of ids) {
+    for (const row of stats(id)[key]) map.set(row.name, (map.get(row.name) || 0) + row.count);
+  }
+  return [...map.entries()].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+}
+function headline(ids) {
+  const parts = ids.map(stats);
+  if (!parts.length) {
+    return { views: 0, visitors: 0, requests: 0, errors: 0, client: 0, bounce: 0, duration: 0, p50: null, p95: null, errorRate: 0, delta: { pageviews: 0, visitors: 0, bounce: 0, duration: 0, requests: 0, errors: 0 } };
+  }
+  const views = sum(parts, (part) => part.views);
+  const visitors = sum(parts, (part) => part.visitors);
+  const requests = sum(parts, (part) => part.requests);
+  const errors = sum(parts, (part) => part.errors);
+  const client = sum(parts, (part) => part.client);
+  const bounce = views ? sum(parts, (part) => part.bounce * part.views) / views : 0;
+  const visit = visitors ? sum(parts, (part) => part.duration * part.visitors) / visitors : 0;
+  const p95 = Math.max(...parts.map((part) => part.p95 ?? 0));
+  const p50 = parts.slice().sort((a, b) => b.requests - a.requests)[0]?.p50 ?? null;
+  const blend = (key) => {
+    const weight = sum(parts, (part) => part.views) || 1;
+    return sum(parts, (part) => part.delta[key] * part.views) / weight;
+  };
+  return { views, visitors, requests, errors, client, bounce, duration: visit, p50, p95, errorRate: requests ? errors / requests : 0, delta: { pageviews: blend('pageviews'), visitors: blend('visitors'), bounce: blend('bounce'), duration: blend('duration'), requests: blend('requests'), errors: blend('errors') } };
+}
+function change(value, goodWhenUp) {
+  const up = value >= 0;
+  const good = goodWhenUp ? up : !up;
+  return '<span class="' + (good ? 'up' : 'down') + '">' + (up ? '↑ ' : '↓ ') + Math.abs(value * 100).toFixed(1) + '%</span> vs ' + PRIOR[state.range];
+}
+const ICONS = {
+  visitors: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.5" r="2.2" fill="none" stroke="currentColor"/><path d="M3.5 13.2c.7-2.2 2.4-3.3 4.5-3.3s3.8 1.1 4.5 3.3" fill="none" stroke="currentColor"/></svg>',
+  views: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor"/><path d="M3 8h10" fill="none" stroke="currentColor"/></svg>',
+  api: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 12.5 6 8l2.2 2.2L14 4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+  latency: '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13V7M8 13V3M13 13V9" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+};
+function priorValue(value, delta) {
+  if (!Number.isFinite(delta) || delta <= -1) return 0;
+  return value / (1 + delta);
+}
+function priorCount(value, delta) {
+  return num(Math.round(priorValue(value, delta)));
+}
+function kpi(label, value, hint, icon, more) {
+  return '<article class="kpi" tabindex="0"><div class="kpi-top"><p class="label">' + label + '</p>' + (icon || '') + '</div><p class="value">' + value + '</p><p class="hint">' + hint + '</p>' + (more ? '<p class="kpi-more">' + more + '</p>' : '') + '</article>';
+}
+function overviewKpis(data) {
+  return '<section class="kpis">' +
+    kpi('Unique visitors', num(data.visitors), 'Daily distinct sessions', ICONS.visitors, 'Prior period ' + priorCount(data.visitors, data.delta.visitors)) +
+    kpi('Page views', num(data.views), 'Frontend activity', ICONS.views, 'Prior period ' + priorCount(data.views, data.delta.pageviews)) +
+    kpi('API requests', num(data.requests), 'Across normalized routes', ICONS.api, 'Prior period ' + priorCount(data.requests, data.delta.requests)) +
+    kpi('API latency · p95', ms(data.p95), 'Merged histogram estimate', ICONS.latency, 'Slowest route in the range, bucket ceiling') +
+    '</section>';
+}
+const DEMO_END = new Date(Date.UTC(2026, 10, 17));
+function windowLabel() {
+  const end = new Date(DEMO_END);
+  const back = state.range === '24h' ? 0 : state.range === '7d' ? 6 : state.range === '30d' ? 29 : 89;
+  const start = new Date(end);
+  start.setUTCDate(end.getUTCDate() - back);
+  const fmt = (date) => date.toISOString().slice(0, 10);
+  return back === 0 ? fmt(end) : fmt(start) + ' → ' + fmt(end);
+}
+function dayLabels() {
+  const count = POINTS[state.range];
+  if (state.range === '24h') return Array.from({ length: count }, (_, index) => (index % 6 === 0 ? String(index).padStart(2, '0') + ':00' : ''));
+  const span = state.range === '7d' ? 6 : state.range === '30d' ? 29 : 89;
+  const step = count > 14 ? 5 : 1;
+  return Array.from({ length: count }, (_, index) => {
+    if (index % step !== 0 && index !== count - 1) return '';
+    const date = new Date(DEMO_END);
+    date.setUTCDate(DEMO_END.getUTCDate() - (span - Math.round((span * index) / (count - 1))));
+    return date.toLocaleDateString('en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  });
+}
+function addSeries(ids, key) {
+  const series = ids.map((id) => stats(id)[key]);
+  return series[0].map((_, index) => series.reduce((total, values) => total + values[index], 0));
+}
+function ordinal(day) {
+  const teen = day % 100;
+  const suffix = teen >= 11 && teen <= 13 ? 'th' : { 1: 'st', 2: 'nd', 3: 'rd' }[day % 10] || 'th';
+  return day + suffix;
+}
+function pointWhen(index, count) {
+  const date = new Date(DEMO_END);
+  if (state.range === '24h') {
+    date.setUTCHours(index, 0, 0, 0);
+    return date.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
+  }
+  const span = state.range === '7d' ? 6 : state.range === '30d' ? 29 : 89;
+  date.setUTCDate(DEMO_END.getUTCDate() - (span - Math.round((span * index) / Math.max(count - 1, 1))));
+  const weekday = date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
+  const month = date.toLocaleDateString('en-US', { month: 'long', timeZone: 'UTC' });
+  return weekday + ', ' + month + ' ' + ordinal(date.getUTCDate()) + ', ' + date.getUTCFullYear();
+}
+function tickLabel(value, unit) {
+  if (unit === 'pct') return (value * 100).toFixed(0) + '%';
+  if (unit === 'sec') return duration(value);
+  return num(Math.round(value));
+}
+function groupedChart(series, label) {
+  const count = series[0].values.length;
+  const max = Math.max(...series.flatMap((item) => item.values), 1);
+  const totals = series.map((item) => item.values.reduce((total, value) => total + value, 0) || 1);
+  const columns = Array.from({ length: count }, (_, index) => {
+    const bars = series.map((item) => '<i style="height:' + Math.max(1, (item.values[index] / max) * 100).toFixed(2) + '%;background:' + item.color + '"></i>').join('');
+    const lines = series.map((item, seriesIndex) => {
+      const share = item.unit ? '' : '<em>' + pct(item.values[index] / totals[seriesIndex]) + '</em>';
+      return '<div><i class="swatch" style="background:' + item.color + '"></i>' + esc(item.name) + '<b>' + formatPoint(item, item.values[index]) + '</b>' + share + '</div>';
+    }).join('');
+    return '<div class="hit" tabindex="0" data-when="' + esc(pointWhen(index, count)) + '" data-lines="' + esc(lines) + '" aria-label="' + esc(pointWhen(index, count)) + '"><div class="pair">' + bars + '</div></div>';
+  }).join('');
+  const ticks = [1, 0.67, 0.33, 0].map((ratio) => '<span>' + tickLabel(max * ratio, series[0].unit) + '</span>').join('');
+  const legend = series.map((item) => '<span><i style="background:' + item.color + '"></i>' + esc(item.name) + '</span>').join('');
+  return '<div class="hover-chart" data-chart aria-label="' + esc(label) + '"><div class="plot"><div class="yticks">' + ticks + '</div><div class="bars-hit">' + columns + '</div></div><div class="axis dense" style="margin-left:52px">' + dayLabels().map((item) => '<span>' + esc(item) + '</span>').join('') + '</div><div class="legend-row" style="justify-content:center;margin-top:10px">' + legend + '</div><div class="tip" hidden></div><div class="day-detail" hidden></div></div>';
+}
+function bindCharts() {
+  for (const chart of stage.querySelectorAll('[data-chart]')) {
+    const tip = chart.querySelector('.tip');
+    const guide = chart.querySelector('.guide');
+    const dots = [...chart.querySelectorAll('.dot-live')];
+    const show = (hit) => {
+      if (!hit) {
+        tip.hidden = true;
+        if (guide) guide.setAttribute('hidden', '');
+        for (const dot of dots) dot.setAttribute('hidden', '');
+        return;
+      }
+      tip.hidden = false;
+      tip.innerHTML = '<strong>' + hit.dataset.when + '</strong>' + hit.dataset.lines;
+      const box = chart.getBoundingClientRect();
+      const column = hit.getBoundingClientRect();
+      let left = column.left - box.left + column.width / 2;
+      left = Math.max(96, Math.min(left, box.width - 96));
+      tip.style.left = left + 'px';
+      tip.style.top = Math.max(8, column.top - box.top) + 'px';
+      if (guide && hit.dataset.x) {
+        guide.removeAttribute('hidden');
+        guide.setAttribute('x1', hit.dataset.x);
+        guide.setAttribute('x2', hit.dataset.x);
+        const ys = (hit.dataset.ys || '').split(',');
+        dots.forEach((dot, index) => {
+          dot.removeAttribute('hidden');
+          dot.setAttribute('cx', hit.dataset.x);
+          dot.setAttribute('cy', ys[index] || '0');
+        });
+      }
+    };
+    chart.addEventListener('mousemove', (event) => show(event.target.closest('.hit')));
+    chart.addEventListener('mouseleave', () => show(null));
+    chart.addEventListener('focusin', (event) => show(event.target.closest('.hit')));
+    chart.addEventListener('focusout', () => show(null));
+    chart.addEventListener('click', (event) => {
+      const hit = event.target.closest('.hit');
+      const detail = chart.querySelector('.day-detail');
+      if (!hit || !detail) return;
+      chart.querySelectorAll('.hit.on').forEach((item) => item.classList.remove('on'));
+      hit.classList.add('on');
+      detail.hidden = false;
+      detail.innerHTML = '<strong>' + hit.dataset.when + '</strong>' + hit.dataset.lines;
+    });
+  }
+  for (const pie of stage.querySelectorAll('[data-pie]')) {
+    const tip = pie.querySelector('.tip');
+    const showSlice = (slice) => {
+      if (!slice || !slice.dataset.slice) { tip.hidden = true; return; }
+      tip.hidden = false;
+      tip.innerHTML = '<strong>' + slice.dataset.slice + '</strong><div><i class="swatch" style="background:' + (slice.getAttribute('stroke') || '#d4c4ff') + '"></i>Share<b>' + (slice.dataset.pct || '') + '</b></div><div>Count<b>' + (slice.dataset.count || '') + '</b></div>';
+    };
+    pie.addEventListener('mousemove', (event) => showSlice(event.target.closest('[data-slice]')));
+    pie.addEventListener('mouseleave', () => { tip.hidden = true; });
+  }
+}
+function formatPoint(item, value) {
+  if (item.unit === 'pct') return (value * 100).toFixed(1) + '%';
+  if (item.unit === 'sec') return duration(value);
+  return num(value);
+}
+function band(seed, count, center, spread) {
+  return Array.from({ length: count }, (_, index) => {
+    const wobble = Math.sin((index + seed) * 0.7) * 0.62 + Math.sin((index + 2) * 0.27) * 0.38;
+    return Math.max(0, center + wobble * spread);
+  });
+}
+function activity(ids) {
+  if (!ids.length) return '<section class="panel" style="margin-top:12px"><h2>No listed projects</h2><p class="quiet">List a project in SCF managing to show it here.</p></section>';
+  const subtitle = ids.length > 1 ? 'Daily page views and unique visitors across all projects' : 'Daily page views and unique visitors for ' + nameOf(ids[0]);
+  return '<section class="panel" style="margin-top:12px"><div class="panel-head"><div><h2>Web activity</h2><p>' + esc(subtitle) + '. Hover a bar for the day, or click it to keep the numbers open.</p></div><span class="badge">Sample data</span></div>' + groupedChart([
+    { name: 'Visitors', values: addSeries(ids, 'seriesVisitors'), color: '#f0a090' },
+    { name: 'Views', values: addSeries(ids, 'seriesViews'), color: '#d4c4ff' },
+  ], 'Visitors and page views') + '</section>';
+}
+function apiCurve(ids) {
+  if (!ids.length) return '';
+  const series = ids.length === 1
+    ? [{ name: 'API requests', values: stats(ids[0]).seriesRequests, color: '#d4c4ff' }]
+    : ids.map((id) => ({ name: nameOf(id), values: stats(id).seriesRequests, color: id === 'alpha' ? '#d4c4ff' : '#f0a090' }));
+  return '<section class="panel" style="margin-top:12px"><div class="panel-head"><div><h2>API volume</h2><p>Requests per ' + (state.range === '24h' ? 'hour' : 'day') + '. Click a bar to keep that point open.</p></div><span class="badge">Sample data</span></div>' + groupedChart(series, 'API requests') + '</section>';
+}
+function qualityCharts(ids) {
+  if (!ids.length) return '';
+  const parts = ids.map(stats);
+  const weight = sum(parts, (part) => part.visitors) || 1;
+  const bounce = sum(parts, (part) => part.bounce * part.visitors) / weight;
+  const visit = sum(parts, (part) => part.duration * part.visitors) / weight;
+  const count = POINTS[state.range];
+  return '<div class="layout split"><section class="panel"><div class="panel-head"><div><h2>Bounce rate</h2><p>Share of visits with a single page. Click a bar to keep that day open.</p></div></div>' + groupedChart([{ name: 'Bounce', values: band(seedOf(ids[0], 8), count, bounce, bounce * 0.12), color: '#e4c48a', unit: 'pct' }], 'Bounce rate') + '</section><section class="panel"><div class="panel-head"><div><h2>Visit duration</h2><p>First event to last event, when the visit has more than one page.</p></div></div>' + groupedChart([{ name: 'Duration', values: band(seedOf(ids[0], 9), count, visit, visit * 0.16), color: '#9ed9bc', unit: 'sec' }], 'Visit duration') + '</section></div>';
+}
+function latencyChart(ids) {
+  const buckets = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000];
+  const counts = buckets.map(() => 0);
+  for (const id of ids) {
+    for (const row of stats(id).api) {
+      const mid = buckets.findIndex((edge) => (row.p50 ?? row.p95) <= edge);
+      const tail = buckets.findIndex((edge) => row.p95 <= edge);
+      const start = mid < 0 ? buckets.length - 1 : mid;
+      const end = tail < 0 ? buckets.length - 1 : tail;
+      const head = Math.round(row.count * 0.7);
+      counts[start] += head;
+      counts[end] += row.count - head;
+    }
+  }
+  const rows = buckets.map((edge, index) => ({ name: '≤ ' + (edge >= 1000 ? (edge / 1000) + ' s' : edge + ' ms'), count: counts[index] }));
+  return '<section class="panel"><h2>Latency buckets</h2><p class="sub">Sample spread from p50 to p95. Production stores the same fixed buckets, and the dashboard reads the bucket ceiling.</p>' + bars(rows, false) + '</section>';
+}
+function previewPath(input) {
+  const account = /^G[A-Z2-7]{55}$/;
+  const contract = /^C[A-Z2-7]{55}$/;
+  const muxed = /^M[A-Z2-7]{68}$/;
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const numeric = /^\d+$/;
+  const hex = /^(?:0x[0-9a-f]{16,}|[0-9a-f]{32,})$/i;
+  const path = (input.split('#')[0] ?? '').split('?')[0] ?? '';
+  const segments = path.split('/').filter((part) => part.length > 0).map((part) => {
+    if (muxed.test(part)) return ':muxed';
+    if (contract.test(part)) return ':contract';
+    if (account.test(part)) return ':account';
+    if (uuid.test(part)) return ':uuid';
+    if (numeric.test(part)) return ':id';
+    if (hex.test(part)) return ':hash';
+    return part;
+  });
+  if (segments.length === 0) return '/';
+  return (path.startsWith('/') ? '/' : '') + segments.join('/');
+}
+function privacyCard() {
+  return '<section class="panel privacy-card"><svg width="22" height="22" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.2 15.5 5v4.2c0 3.4-2.6 5.6-6.5 6.6-3.9-1-6.5-3.2-6.5-6.6V5Z" fill="none" stroke="#d4c4ff" stroke-width="1.3"/></svg><h2>Privacy by design</h2><p class="quiet">This demo collects no visitor telemetry. Country, device and browser breakdowns are generated fixtures. Production privacy controls remain to be implemented.</p></section>';
+}
+function facts() {
+  return '<div class="facts">' + privacyCard() + '<article class="panel"><h2>Free for every tenant</h2><p class="quiet">€0 enrollment. €0 tenant fees. Enrollment does not list a project on the dashboard.</p></article><article class="panel"><h2>Built on open source</h2><p class="quiet">Umami, MIT license. This spike adds the collector Umami does not ship.</p></article></div>';
+}
+const METRICS = { pages: 'Top pages', referrers: 'Referrers', countries: 'Countries', browsers: 'Browsers', devices: 'Devices', os: 'Operating systems' };
+const PIE = ['#d4c4ff', '#f0a090', '#9ed9bc', '#e4c48a', '#8f82b8', '#6d6558', '#7eb6d6', '#c4b4a4'];
+function categoryRows(ids, metric) {
+  if (!ids.length) return [];
+  if (metric === 'pages') {
+    return ids.flatMap((id) => stats(id).pages.map((page) => ({
+      name: ids.length > 1 ? nameOf(id) + ' · ' + page.path : page.path,
+      count: page.views,
+      bounce: page.bounce,
+      duration: page.duration,
+    }))).sort((a, b) => b.count - a.count).slice(0, 8);
+  }
+  const key = metric === 'status' ? 'countries' : metric;
+  return merged(ids, key).slice(0, 8);
+}
+function donut(rows, metric, large, interactive) {
+  const drawn = rows.filter((row) => row.count > 0);
+  if (!drawn.length) return '';
+  const total = sum(drawn, (row) => row.count) || 1;
+  const size = large ? 168 : 72;
+  const radius = large ? 58 : 24;
+  const width = large ? 18 : 10;
+  const center = size / 2;
+  const circ = 2 * Math.PI * radius;
+  const wrap = (svg) => '<div class="pie-wrap" data-pie>' + svg + '<div class="tip" hidden></div></div>';
+  const facts = (row) => ' data-slice="' + esc(row.name) + '" data-count="' + esc(num(row.count)) + '" data-pct="' + pct(row.count / total) + '"' + (interactive ? ' data-metric="' + metric + '"' : '');
+  if (drawn.length === 1) {
+    return wrap('<svg class="donut' + (large ? ' large' : '') + '" viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="' + esc(drawn[0].name) + '"><circle cx="' + center + '" cy="' + center + '" r="' + radius + '" fill="none" stroke="' + PIE[0] + '" stroke-width="' + width + '"' + facts(drawn[0]) + '></circle></svg>');
+  }
+  let offset = 0;
+  const arcs = drawn.map((row, index) => {
+    const len = (row.count / total) * circ;
+    const gap = Math.min(2.5, len * 0.06);
+    const visible = Math.max(0, len - gap);
+    const node = '<circle class="slice" cx="' + center + '" cy="' + center + '" r="' + radius + '" fill="none" stroke="' + PIE[index % PIE.length] + '" stroke-width="' + (state.slice === row.name ? width + 3 : width) + '" stroke-dasharray="' + visible.toFixed(2) + ' ' + (circ - visible).toFixed(2) + '" stroke-dashoffset="' + (-offset).toFixed(2) + '" transform="rotate(-90 ' + center + ' ' + center + ')"' + facts(row) + '></circle>';
+    offset += len;
+    return node;
+  }).join('');
+  return wrap('<svg class="donut' + (large ? ' large' : '') + '" viewBox="0 0 ' + size + ' ' + size + '" role="img" aria-label="' + esc(METRICS[metric] || 'Breakdown') + '">' + arcs + '</svg>');
+}
+function metricCol(metric, ids) {
+  const rows = categoryRows(ids, metric);
+  const total = sum(rows, (row) => row.count) || 1;
+  const lines = rows.map((row) => {
+    const detail = row.bounce == null ? '' : '<span class="quiet">' + pct(row.bounce) + ' bounce · ' + duration(row.duration) + '</span>';
+    return '<button type="button" class="pick' + (state.metric === metric && state.slice === row.name ? ' on' : '') + '" data-metric="' + metric + '" data-slice="' + esc(row.name) + '"><span><span>' + esc(row.name) + '</span>' + detail + '</span><span class="num">' + num(row.count) + '<span class="quiet">' + pct(row.count / total) + '</span></span></button>';
+  }).join('');
+  return '<section class="panel col metric-card' + (state.metric === metric ? ' on' : '') + '"><div class="metric-head"><button type="button" class="metric-title" data-metric="' + metric + '" aria-pressed="' + (state.metric === metric) + '">' + METRICS[metric] + '</button>' + donut(rows, metric, false, true) + '</div><div class="picks">' + lines + '</div></section>';
+}
+function metricBoard(ids) {
+  if (!ids.length) return activity(ids);
+  if (!state.metric || !METRICS[state.metric]) return activity(ids);
+  const rows = categoryRows(ids, state.metric);
+  const chosen = rows.find((row) => row.name === state.slice) || rows[0];
+  if (!chosen) return activity(ids);
+  const total = sum(rows, (row) => row.count) || 1;
+  const color = PIE[Math.max(0, rows.indexOf(chosen)) % PIE.length];
+  const series = wave(seedOf(ids[0], chosen.name.length + 4), POINTS[state.range], chosen.count);
+  const legend = rows.map((row, index) => '<button type="button" class="pick' + (row.name === chosen.name ? ' on' : '') + '" data-metric="' + state.metric + '" data-slice="' + esc(row.name) + '"><span class="who"><i class="swatch" style="background:' + PIE[index % PIE.length] + '"></i>' + esc(row.name) + '</span><b>' + pct(row.count / total) + '</b></button>').join('');
+  return '<section class="panel" style="margin-top:12px"><div class="panel-head"><div><h2>' + esc(METRICS[state.metric]) + '</h2><p>' + esc(chosen.name) + ' · ' + num(chosen.count) + ' · ' + pct(chosen.count / total) + ' of this breakdown. Click a bar to keep that day open.</p></div><button class="ghost" type="button" data-metric="traffic">Visitors and views</button></div><div class="metric-split">' + donut(rows, state.metric, true, true) + '<div class="metric-legend">' + legend + '</div>' + groupedChart([{ name: chosen.name, values: series, color: color }], chosen.name) + '</div></section>';
+}
+function statusPie(data) {
+  const rows = [
+    { name: '2xx', count: Math.max(0, data.requests - data.errors - data.client) },
+    { name: '4xx', count: data.client },
+    { name: '5xx', count: data.errors },
+  ];
+  const colors = ['#9ed9bc', '#e4c48a', '#f0a090'];
+  const saved = PIE.slice();
+  PIE.splice(0, PIE.length, ...colors);
+  const graphic = donut(rows, 'status', true, false);
+  PIE.splice(0, PIE.length, ...saved);
+  return '<div class="status-pie">' + graphic + '</div>';
+}
+function statusLabel(status) {
+  const map = { listed: ['ok', 'Listed'], hidden: ['warn', 'Enrolled'], pending: ['warn', 'Pending'], removed: ['bad', 'Removed'] };
+  const item = map[status] || map.hidden;
+  return '<span class="pill ' + item[0] + '">' + item[1] + '</span>';
+}
+function erasureOf(id) {
+  if (!state.erasure[id]) state.erasure[id] = { web: { all: false, ranges: {} }, api: { all: false, ranges: {} } };
+  return state.erasure[id];
+}
+function streamOff(id, stream) {
+  const mark = state.erasure[id];
+  if (!mark) return false;
+  return mark[stream].all || Boolean(mark[stream].ranges[state.range]);
+}
+function privacyTargets() {
+  const ids = state.role === 'operator' ? ['alpha', 'beta'] : [state.tenantId];
+  return ids.filter((id) => PROFILES[id] && !state.removed[id]);
+}
+function measure(id, range) {
+  const previous = state.range;
+  state.range = range;
+  const data = stats(id);
+  state.range = previous;
+  return data;
+}
+function erasureImpact(id, action, stream, period) {
+  const data = measure(id, action === 'remove' || period === 'all' ? '90d' : state.range);
+  const web = action === 'remove' || stream !== 'api';
+  const api = action === 'remove' || stream !== 'web';
+  return { visitors: web ? data.visitors : 0, views: web ? data.views : 0, requests: api ? data.requests : 0 };
+}
+function applyErasure(id, action, stream, period, reason) {
+  const impact = erasureImpact(id, action, stream, period);
+  const streams = action === 'remove' || stream === 'both' ? ['web', 'api'] : [stream];
+  for (const name of streams) {
+    const box = erasureOf(id)[name];
+    if (action === 'remove' || period === 'all') box.all = true;
+    else box.ranges[state.range] = true;
+  }
+  if (action === 'remove') state.removed[id] = true;
+  state.audit.unshift({
+    at: new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC',
+    actor: state.role === 'operator' ? 'SCF operator' : nameOf(state.tenantId),
+    project: nameOf(id),
+    projectId: id,
+    action: action === 'remove' ? 'Removed project' : 'Erased ' + (stream === 'both' ? 'web and API' : stream === 'web' ? 'web' : 'API'),
+    period: action === 'remove' || period === 'all' ? 'All demo history' : windowLabel(),
+    reason,
+    visitors: impact.visitors,
+    views: impact.views,
+    requests: impact.requests,
+  });
+}
+function privacyView() {
+  const targets = privacyTargets();
+  const log = state.audit.filter((entry) => state.role === 'operator' || entry.projectId === state.tenantId);
+  const logRows = log.map((entry) => '<tr><td>' + esc(entry.at) + '</td><td>' + esc(entry.actor) + '</td><td>' + esc(entry.project) + '</td><td>' + esc(entry.action) + '</td><td>' + esc(entry.period) + '</td><td class="num">' + num(entry.visitors) + ' / ' + num(entry.views) + ' / ' + num(entry.requests) + '</td><td>' + esc(entry.reason) + '</td></tr>').join('');
+  const logTable = '<section class="panel" style="margin-top:12px"><h2>Session log</h2><p class="quiet">Kept for this browser session, including after a project is removed. Refresh clears it.</p><div class="table-wrap"><table><thead><tr><th>When</th><th>Actor</th><th>Project</th><th>Action</th><th>Period</th><th>Visitors / views / API</th><th>Reason</th></tr></thead><tbody>' + (logRows || '<tr><td colspan="7">No data actions yet.</td></tr>') + '</tbody></table></div></section>';
+  if (!targets.length) {
+    return '<section class="panel"><h2>No enrolled projects</h2><p class="quiet">Every project with sample traffic was removed in this session. Refresh restores Northwind and Harbor.</p></section>' + logTable;
+  }
+  if (!targets.includes(state.privacyProject)) state.privacyProject = targets[0];
+  const id = state.privacyProject;
+  const remove = state.privacyAction === 'remove';
+  const impact = erasureImpact(id, state.privacyAction, state.privacyStream, state.privacyPeriod);
+  const available = impact.views > 0 || impact.requests > 0 || impact.visitors > 0;
+  const options = targets.map((item) => '<option value="' + item + '"' + (item === id ? ' selected' : '') + '>' + esc(nameOf(item)) + '</option>').join('');
+  const fields = remove ? '' : '<div class="data-fields"><label>Data to erase<select id="privacy-stream" aria-label="Data to erase"><option value="both"' + (state.privacyStream === 'both' ? ' selected' : '') + '>Web + API analytics</option><option value="web"' + (state.privacyStream === 'web' ? ' selected' : '') + '>Web analytics only</option><option value="api"' + (state.privacyStream === 'api' ? ' selected' : '') + '>API analytics only</option></select></label><label>Period<select id="privacy-period" aria-label="Erasure period"><option value="range"' + (state.privacyPeriod === 'range' ? ' selected' : '') + '>Selected dashboard period (' + esc(windowLabel()) + ')</option><option value="all"' + (state.privacyPeriod === 'all' ? ' selected' : '') + '>All available history (90-day demo)</option></select></label></div>';
+  const confirm = state.privacyStep === 'confirm'
+    ? '<section class="panel" style="margin-top:12px"><h2>' + (remove ? 'Remove this project?' : 'Erase selected analytics?') + '</h2><p class="quiet">' + (remove ? 'The project leaves enrollment, dashboards, and comparisons in this session.' : 'The project and its integration id stay. Only the selected sample data is cleared.') + '</p><div class="impact-grid"><div><span>Project</span><strong style="font-size:22px">' + esc(nameOf(id)) + '</strong></div><div><span>Visitors</span><strong>' + num(impact.visitors) + '</strong></div><div><span>Page views</span><strong>' + num(impact.views) + '</strong></div></div><p class="quiet">' + num(impact.requests) + ' API requests. Reason: ' + esc(state.privacyReason) + '</p><label>Type <strong>' + esc(nameOf(id)) + '</strong> to confirm<input id="privacy-confirm" aria-label="Confirm project name" value="' + esc(state.privacyConfirm) + '" autocomplete="off" /></label>' + (state.privacyError ? '<p class="caption">' + esc(state.privacyError) + '</p>' : '') + '<div class="form-foot"><span class="quiet">Refresh restores the original fixtures. This does not delete database rows.</span><span><button class="ghost" type="button" data-privacy="cancel">Cancel</button> <button class="primary danger" type="button" data-privacy="confirm">Confirm</button></span></div></section>'
+    : '';
+  return '<section class="panel"><div class="panel-head"><div><h2>Control your project data</h2><p>' + (state.role === 'operator' ? 'Erase sample analytics for any enrolled project, or remove one that is outside the ecosystem.' : 'Erase sample analytics for this project, or delete the project and its data.') + '</p></div><span class="badge">Synthetic data only</span></div><p class="mono quiet">tenant.id: ' + esc(id) + '</p><div class="choice-row"><button class="ghost" type="button" data-privacy="erase" aria-pressed="' + (!remove) + '"><strong>Erase analytics</strong><small>Keep the project and its id.</small></button><button class="ghost" type="button" data-privacy="remove" aria-pressed="' + remove + '"><strong>Delete project and all data</strong><small>Remove enrollment and both streams.</small></button></div><label>Project<select id="privacy-project" class="project-select" aria-label="Data management project"' + (state.role === 'operator' ? '' : ' disabled') + '>' + options + '</select></label>' + fields + '<div class="impact-grid"><div><span>Visitors affected</span><strong>' + num(impact.visitors) + '</strong></div><div><span>Page views affected</span><strong>' + num(impact.views) + '</strong></div><div><span>API requests affected</span><strong>' + num(impact.requests) + '</strong></div></div><label>Reason for this action<textarea id="privacy-reason" aria-label="Deletion reason" maxlength="500" rows="3" placeholder="Tenant-requested erasure, or a project that is no longer on Stellar.">' + esc(state.privacyReason) + '</textarea></label><p class="quiet">Charts, comparisons, and the export in this session update immediately. Refresh puts the fixtures back. Production erasure is deleting the property and its rows.</p><div class="form-foot"><span class="quiet">' + (available ? 'The next step asks for the project name.' : 'No matching sample data remains in this selection.') + '</span><button class="primary danger" type="button" data-privacy="review"' + (available ? '' : ' disabled') + '>Review</button></div></section><section class="panel" style="margin-top:12px"><h2>What gets erased?</h2><div class="explain"><div><strong>Web analytics</strong><p>Visitors, page views, duration, bounce, and the audience breakdowns for the selected period.</p></div><div><strong>API analytics</strong><p>Request counts, status mix, and latency for the selected period.</p></div><div><strong>Project deletion</strong><p>The project leaves the demo. This does not revoke a production key or touch a backup.</p></div></div></section>' + confirm + logTable;
+}
+function manageRecords() {
+  const known = (state.roster?.tenants || []).filter((tenant) => PROFILES[tenant.id]).map((tenant) => ({
+    id: tenant.id,
+    name: PROFILES[tenant.id].name,
+    detail: PROFILES[tenant.id].detail,
+    proof: tenant.id === 'alpha' ? 'stellar.toml' : 'Soroban contract',
+    status: listingOf(tenant.id),
+  }));
+  return known.concat(state.waiting.map((item) => ({ ...item, status: listingOf(item.id) })));
+}
+function manageActions(row) {
+  if (row.status === 'removed') return '<button class="ghost" type="button" data-manage="restore" data-id="' + esc(row.id) + '">Restore</button>';
+  const list = row.status === 'listed' ? '' : '<button class="ghost" type="button" data-manage="list" data-id="' + esc(row.id) + '">List</button>';
+  const hide = row.status === 'listed' ? '<button class="ghost" type="button" data-manage="hide" data-id="' + esc(row.id) + '">Hide</button>' : '';
+  return list + hide + '<button class="ghost" type="button" data-manage="remove" data-id="' + esc(row.id) + '">Remove</button>';
+}
+function manageView() {
+  const rows = manageRecords().map((row) => '<tr><td><span class="who"><span><strong>' + esc(row.name) + '</strong><span class="quiet">' + esc(row.detail) + '</span></span></span></td><td class="mono">' + esc(row.proof) + '</td><td>' + statusLabel(row.status) + '</td><td><div class="manage-actions">' + manageActions(row) + '</div></td></tr>').join('');
+  const keys = state.keys.map((key) => '<tr><td>' + esc(key.name) + '</td><td class="mono">' + esc(key.revoked ? 'revoked' : key.hint.slice(0, 12) + '••••') + '</td><td>' + (key.revoked ? '<span class="pill bad">Revoked</span>' : '<span class="pill ok">Active</span>') + '</td><td>' + (key.revoked ? '' : '<button class="ghost" type="button" data-manage="revoke" data-id="' + esc(key.id) + '">Revoke</button>') + '</td></tr>').join('');
+  const fresh = state.freshKey ? '<p class="key-line mono">' + esc(state.freshKey) + '</p>' : '';
+  return '<section class="panel"><div class="panel-head"><div><h2>Enrollment</h2><p>Open lets any Stellar project enroll. Approval required holds a new project until SCF accepts it. Neither action lists the project. Listing is separate, and SCF decides what the dashboard shows.</p></div><div class="switch"><button type="button" data-manage="open" aria-pressed="' + (!state.approval) + '">Open</button><button type="button" data-manage="approval" aria-pressed="' + state.approval + '">Approval required</button></div></div></section>' +
+    '<section class="panel" style="margin-top:12px"><div class="panel-head"><div><h2>Projects</h2><p>Hide keeps the project enrolled and off the dashboard. Remove drops a project that is not part of the ecosystem. Quill is a sample application and has no traffic to chart.</p></div></div><div class="table-wrap"><table><thead><tr><th>Project</th><th>Proof</th><th>Dashboard</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div></section>' +
+    '<section class="panel" style="margin-top:12px"><div class="panel-head"><div><h2>Metrics keys</h2><p>Operators mint and revoke keys for tools that read metrics. This demo shows the key once. The collector does not check it.</p></div><button class="primary" type="button" data-manage="mint">Generate key</button></div>' + fresh + '<div class="table-wrap"><table><thead><tr><th>Name</th><th>Key</th><th>Status</th><th></th></tr></thead><tbody>' + keys + '</tbody></table></div></section>';
+}
+function listCol(title, unit, rows, code) {
+  const lines = rows.slice(0, 5).map((row) => '<div><span>' + (code ? '<code>' + esc(row.path) + '</code>' : esc(row.name)) + '</span><span class="num">' + num(row.count ?? row.views) + '</span></div>').join('');
+  return '<section class="panel col"><h2>' + title + '</h2><p class="quiet">' + unit + '</p><div class="mini">' + lines + '</div></section>';
+}
+function projectTable(ids) {
+  const query = state.projectQuery.trim().toLowerCase();
+  let rows = ids.map((id) => ({ id, meta: PROFILES[id], data: stats(id) })).filter((row) => row.meta);
+  if (query) rows = rows.filter((row) => (row.meta.name + ' ' + row.meta.detail).toLowerCase().includes(query));
+  rows.sort((a, b) => {
+    if (state.projectSort === 'visitors') return b.data.visitors - a.data.visitors;
+    if (state.projectSort === 'name') return a.meta.name.localeCompare(b.meta.name);
+    return b.data.requests - a.data.requests;
+  });
+  const tools = ids.length > 1
+    ? '<div class="table-tools"><input id="project-search" type="search" placeholder="Search projects…" value="' + esc(state.projectQuery) + '" aria-label="Search projects" /><select id="project-sort" aria-label="Sort projects"><option value="requests">API requests ↓</option><option value="visitors">Visitors ↓</option><option value="name">Name A–Z</option></select></div>'
+    : '';
+  const body = rows.map((row) => '<tr><td><span class="who"><i class="avatar tiny ' + row.meta.hue + '">' + esc(row.meta.name[0]) + '</i><span><strong>' + esc(row.meta.name) + '</strong><span class="quiet">' + esc(row.meta.detail) + '</span></span></span></td><td class="num">' + num(row.data.visitors) + '</td><td class="num">' + num(row.data.views) + '</td><td class="num">' + num(row.data.requests) + '</td><td class="num">' + ms(row.data.p95) + '</td><td><span class="pill ok">Free</span></td><td><button class="ghost" type="button" data-open="' + row.id + '">View</button></td></tr>').join('');
+  return '<section class="panel" style="margin-top:12px"><div class="panel-head"><div><h2>' + (ids.length > 1 ? 'Ecosystem projects' : 'This project') + '</h2><p>Compare adoption with the same metrics, over the same period.</p></div><span class="count">' + rows.length + '</span></div>' + tools + '<div class="table-wrap"><table><thead><tr><th>Product</th><th>Visitors</th><th>Page views</th><th>API requests</th><th>p95 latency</th><th>Enrollment</th><th></th></tr></thead><tbody>' + (body || '<tr><td colspan="7">No project matches.</td></tr>') + '</tbody></table></div></section>';
+}
+function otelPanel() {
+  return '<section class="panel"><h2>Standard OpenTelemetry attributes</h2><p class="sub">The collector keeps these and drops span, trace, and log bodies.</p><div class="chips"><span>tenant.id</span><span>service.name</span><span>http.route</span><span>http.response.status_code</span><span>duration</span></div></section>';
+}
+function tryPanel() {
+  const sample = '/accounts/' + ACCOUNT + '/payments/42/';
+  return '<section class="panel try" style="margin-top:12px"><h2>Try path normalization</h2><p class="sub">Fixed rules for ids, UUIDs, hashes, and Stellar addresses.</p><label class="quiet">Request path<input id="try-path" value="' + esc(sample) + '" /></label><p class="try-out mono" id="try-out">' + esc(previewPath(sample)) + '</p></section>';
+}
+function webKpis(data) {
+  return '<section class="kpis">' +
+    kpi('Pageviews', num(data.views), change(data.delta.pageviews, true), '', 'Prior period ' + priorCount(data.views, data.delta.pageviews)) +
+    kpi('Visitors', num(data.visitors), change(data.delta.visitors, true), '', 'Prior period ' + priorCount(data.visitors, data.delta.visitors)) +
+    kpi('Bounce rate', pct(data.bounce), change(data.delta.bounce, false), '', 'Prior period ' + pct(priorValue(data.bounce, data.delta.bounce))) +
+    kpi('Visit duration', duration(data.duration), change(data.delta.duration, true), '', 'Prior period ' + duration(priorValue(data.duration, data.delta.duration))) +
+    '</section>';
+}
+function apiKpis(data) {
+  return '<section class="kpis" style="margin-top:12px">' +
+    kpi('API requests', num(data.requests), change(data.delta.requests, true), '', 'Prior period ' + priorCount(data.requests, data.delta.requests)) +
+    kpi('Error rate', pct(data.errorRate), change(data.delta.errors, false), '', 'Prior period ' + pct(priorValue(data.errorRate, data.delta.errors))) +
+    kpi('p50', ms(data.p50), 'Busiest route, bucket ceiling', '', 'A 40 ms call is reported as 50 ms') +
+    kpi('p95', ms(data.p95), 'Slowest route, bucket ceiling', '', 'A 2,200 ms call is reported as 2.5 s') +
+    '</section>';
+}
+function bars(rows, mono) {
+  if (!rows.length) return '<p class="empty">No rows in this range.</p>';
+  const max = Math.max(...rows.map((row) => row.count ?? row.views), 1);
+  return '<div class="bars">' + rows.map((row) => {
+    const count = row.count ?? row.views;
+    const width = Math.max(3, Math.round((count / max) * 100));
+    const label = mono ? '<code>' + esc(row.path) + '</code>' : esc(row.label || row.name);
+    return '<div title="' + esc((row.label || row.name || row.path || '') + ' · ' + num(count)) + '"><div class="bar-meta"><span>' + label + '</span><span>' + num(count) + '</span></div><div class="track"><div class="fill" style="width:' + width + '%"></div></div></div>';
+  }).join('') + '</div>';
+}
+function stack(parts) {
+  const total = parts.reduce((summed, part) => summed + part.value, 0) || 1;
+  return '<div class="stack" aria-hidden="true">' + parts.filter((part) => part.value > 0).map((part) =>
+    '<span class="' + part.className + '" style="width:' + (part.value / total) * 100 + '%"></span>').join('') +
+    '</div><div class="legend">' + parts.map((part) =>
+    '<div><i class="swatch ' + part.className + '"></i>' + esc(part.label) + ' · ' + pct(part.value / total) + '</div>').join('') + '</div>';
+}
+function chart(series, label) {
+  const id = 'g' + (chartSeq += 1);
+  const width = 640;
+  const height = 200;
+  const pad = 12;
+  const max = Math.max(...series.flatMap((item) => item.values), 1);
+  const step = (width - pad * 2) / Math.max(series[0].values.length - 1, 1);
+  const line = (values) => values.map((value, index) => {
+    const x = pad + index * step;
+    const y = height - pad - (value / max) * (height - pad * 2);
+    return (index ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1);
+  }).join(' ');
+  const first = series[0];
+  const area = line(first.values) + ' L ' + (pad + (first.values.length - 1) * step).toFixed(1) + ' ' + (height - pad) + ' L ' + pad + ' ' + (height - pad) + ' Z';
+  const grid = [0.25, 0.5, 0.75].map((ratio) => {
+    const y = (pad + (height - pad * 2) * (1 - ratio)).toFixed(1);
+    return '<line x1="' + pad + '" x2="' + (width - pad) + '" y1="' + y + '" y2="' + y + '" stroke="rgba(243,239,230,0.08)" />';
+  }).join('');
+  const strokes = series.map((item, index) => index === 0
+    ? '<path d="' + area + '" fill="url(#' + id + ')"/><path d="' + line(item.values) + '" fill="none" stroke="' + item.color + '" stroke-width="1.8"/>'
+    : '<path d="' + line(item.values) + '" fill="none" stroke="' + item.color + '" stroke-width="1.8"/>').join('');
+  return '<div class="legend-row">' + series.map((item) => '<span><i style="background:' + item.color + '"></i>' + esc(item.name) + '</span>').join('') +
+    '</div><svg class="chart" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="' + esc(label) + '"><defs><linearGradient id="' + id + '" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + first.color + '" stop-opacity="0.42"/><stop offset="1" stop-color="' + first.color + '" stop-opacity="0"/></linearGradient></defs>' +
+    grid + strokes + '</svg><div class="axis">' + AXIS[state.range].map((item) => '<span>' + item + '</span>').join('') + '</div>';
+}
+function filters(includeProjects) {
+  const status = ['all', '2xx', '4xx', '5xx'].map((value) =>
+    '<button type="button" data-filter="status" data-value="' + value + '" aria-pressed="' + (state.status === value) + '">' + (value === 'all' ? 'All statuses' : value) + '</button>').join('');
+  const projects = includeProjects
+    ? ['all'].concat(state.roster.tenants.map((tenant) => tenant.id)).map((value) =>
+      '<button type="button" data-filter="project" data-value="' + value + '" aria-pressed="' + (state.project === value) + '">' + (value === 'all' ? 'All projects' : nameOf(value)) + '</button>').join('')
+    : '';
+  return '<div class="filters">' + projects + status + '</div>';
+}
+function visibleApi(ids) {
+  return ids.flatMap((id) => stats(id).api)
+    .filter((row) => state.project === 'all' || row.tenantId === state.project)
+    .filter((row) => {
+      if (state.status === '2xx') return row.status >= 200 && row.status < 300;
+      if (state.status === '4xx') return row.status >= 400 && row.status < 500;
+      if (state.status === '5xx') return row.status >= 500;
+      return true;
+    })
+    .sort((a, b) => {
+      if (state.sort === 'p95') return (b.p95 ?? -1) - (a.p95 ?? -1) || b.count - a.count;
+      if (state.sort === 'status') return a.status - b.status || b.count - a.count;
+      return b.count - a.count || a.route.localeCompare(b.route);
+    });
+}
+function apiTable(rows, showProject) {
+  if (!rows.length) return '<p class="empty">Nothing matches this filter.</p>';
+  const head = (showProject ? '<th>Project</th>' : '') + '<th>Service</th><th>Route</th><th>Status</th><th><button type="button" data-sort="requests" aria-pressed="' + (state.sort === 'requests') + '">Requests</button></th><th>p50</th><th><button type="button" data-sort="p95" aria-pressed="' + (state.sort === 'p95') + '">p95</button></th>';
+  const body = rows.map((row) => '<tr>' +
+    (showProject ? '<td><span class="who"><i class="dot ' + hueOf(row.tenantId) + '"></i>' + esc(nameOf(row.tenantId)) + '</span></td>' : '') +
+    '<td>' + esc(row.service) + '</td><td><code>' + esc(row.route) + '</code></td><td><span class="pill ' + tone(row.status) + '">' + row.status + '</span></td><td class="num">' + num(row.count) + '</td><td class="num">' + ms(row.p50) + '</td><td class="num">' + ms(row.p95) + '</td></tr>').join('');
+  return '<div class="table-wrap"><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div><p class="caption">p50 and p95 are the histogram bucket ceiling, so a 40 ms call is reported as 50 ms.</p>';
+}
+function webTable(rows, showProject) {
+  const ranked = rows.slice().sort((a, b) => b.views - a.views);
+  const total = sum(ranked, (row) => row.views) || 1;
+  const body = ranked.map((row) => '<tr>' +
+    (showProject ? '<td><span class="who"><i class="dot ' + hueOf(row.tenantId) + '"></i>' + esc(nameOf(row.tenantId)) + '</span></td>' : '') +
+    '<td><code>' + esc(row.path) + '</code></td><td class="num">' + num(row.views) + '</td><td class="num">' + num(row.visitors) + '</td><td class="num">' + pct(row.bounce) + '</td><td class="num">' + duration(row.duration) + '</td><td class="num">' + pct(row.views / total) + '</td></tr>').join('');
+  return '<div class="table-wrap"><table><thead><tr>' + (showProject ? '<th>Project</th>' : '') + '<th>Path</th><th>Views</th><th>Visitors</th><th>Bounce</th><th>Duration</th><th>Share</th></tr></thead><tbody>' + body + '</tbody></table></div>';
+}
+function projectCard(id) {
+  const data = stats(id);
+  const meta = PROFILES[id];
+  const cells = [
+    ['Pageviews', num(data.views)], ['Visitors', num(data.visitors)], ['Bounce', pct(data.bounce)], ['Duration', duration(data.duration)],
+    ['API requests', num(data.requests)], ['Error rate', pct(data.errorRate)], ['p50', ms(data.p50)], ['p95', ms(data.p95)],
+  ].map((cell) => '<div><strong>' + cell[1] + '</strong><span>' + cell[0] + '</span></div>').join('');
+  return '<article class="panel project ' + meta.hue + '"><div class="name"><i class="dot ' + meta.hue + '"></i>' + esc(meta.name) + '</div><p class="quiet">' + esc(meta.detail) + '</p><div class="stats">' + cells + '</div></article>';
+}
+function receipt() {
+  if (!state.receipt) return '';
+  return '<dl class="receipt ' + state.receipt.tone + '" aria-live="polite"><dt>Result</dt><dd>' + esc(state.receipt.title) + '</dd>' +
+    state.receipt.rows.map((row) => '<dt>' + esc(row[0]) + '</dt><dd class="mono">' + esc(row[1]) + '</dd>').join('') + '</dl>';
+}
+function actions() {
+  const operator = state.role === 'operator';
+  const disabled = operator || state.busy ? ' disabled' : '';
+  const other = state.tenantId === 'beta' ? 'Northwind' : 'Harbor';
+  return '<div class="layout three"><button class="card" type="button" data-action="page"' + disabled + '><p class="label">Web</p><strong>Record a page view</strong><span>Send a Stellar account path and store the normalized form.</span></button><button class="card" type="button" data-action="api"' + disabled + '><p class="label">API</p><strong>Send an API call</strong><span>Keep route, status, and latency. Drop the span and the log.</span></button>' +
+    (operator
+      ? '<button class="card" type="button" data-action="compare"><p class="label">Operator</p><strong>Compare projects</strong><span>Same web and API numbers, side by side.</span></button>'
+      : '<button class="card" type="button" data-action="peek"' + disabled + '><p class="label">Isolation</p><strong>Read ' + other + '</strong><span>Ask for the other project with this key. It should be refused.</span></button>') +
+    '</div>' + receipt();
+}
+function install() {
+  return '<section class="install"><div><h2>Install</h2><p>One script tag. The file is versioned and the hash is pinned. Placeholders stand in for the live host.</p></div><button class="ghost" type="button" data-action="copy">Copy</button><pre class="mono">' + esc(SNIPPET) + '</pre></section>';
+}
+function breakdown(ids) {
+  const many = ids.length > 1;
+  const pages = ids.flatMap((id) => stats(id).pages.map((page) => ({ ...page, label: many ? nameOf(id) + ' · ' + page.path : page.path }))).sort((a, b) => b.views - a.views).slice(0, 6);
+  const data = headline(ids);
+  return '<div class="layout two"><section class="panel"><h2>Pages</h2>' + bars(pages, !many) +
+    '</section><section class="panel"><h2>Referrers</h2>' + bars(merged(ids, 'referrers').slice(0, 6), false) +
+    '</section></div><div class="layout two"><section class="panel"><h2>Countries</h2>' + bars(merged(ids, 'countries'), false) +
+    '</section><section class="panel"><h2>Devices and browsers</h2>' +
+    stack(merged(ids, 'devices').map((row, index) => ({ label: row.name, value: row.count, className: 'c' + index }))) +
+    '<div style="margin-top:16px">' + bars(merged(ids, 'browsers'), false) + '</div></section></div>' +
+    '<section class="panel" style="margin-top:12px"><h2>Status mix</h2>' +
+    stack([{ label: 'Success', value: data.requests - data.errors - data.client, className: 's-ok' }, { label: 'Client errors', value: data.client, className: 's-warn' }, { label: 'Server errors', value: data.errors, className: 's-bad' }]) +
+    '</section>';
+}
+function volumeChart(ids) {
+  return chart(ids.map((id) => ({
+    name: ids.length === 1 ? 'Requests' : nameOf(id),
+    values: wave(seedOf(id, 3), POINTS[state.range], stats(id).requests),
+    color: id === 'alpha' || ids.length === 1 ? '#d4c4ff' : '#f0a090',
+  })), 'API requests');
+}
+function trafficChart(ids) {
+  if (ids.length === 1) {
+    const data = stats(ids[0]);
+    return chart([
+      { name: 'Pageviews', values: data.seriesViews, color: '#d4c4ff' },
+      { name: 'Visitors', values: data.seriesVisitors, color: '#f0a090' },
+    ], 'Pageviews and visitors');
+  }
+  return chart(ids.map((id) => ({ name: nameOf(id), values: stats(id).seriesViews, color: id === 'alpha' ? '#d4c4ff' : '#f0a090' })), 'Pageviews by project');
+}
+function render() {
+  const operator = state.role === 'operator';
+  document.querySelector('#nav-manage').hidden = !operator;
+  if (!operator && state.view === 'manage') state.view = 'overview';
+  document.querySelector('.toolbar').hidden = state.view === 'manage';
+  const ids = scopeIds();
+  const data = headline(ids);
+  const animate = state.painted !== state.view + state.role + state.range;
+  state.painted = state.view + state.role + state.range;
+  const current = operator ? null : PROFILES[state.tenantId];
+  document.querySelector('#workspace-mark').textContent = operator ? 'S' : (current?.name?.[0] ?? 'P');
+  document.querySelector('#workspace-name').textContent = operator ? 'SCF · All projects' : (current?.name ?? 'Project');
+  document.querySelector('#workspace-note').textContent = operator ? 'SCF operator · simulated' : (current?.detail ?? 'Project') + ' · simulated';
+  document.querySelector('#project-count').textContent = String(state.roster?.tenants.length ?? 0);
+  document.querySelector('#range').value = state.range;
+  document.querySelector('#range-window').textContent = windowLabel();
+  for (const button of document.querySelectorAll('#nav button, #tabs button')) {
+    if (button.dataset.view === state.view) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  }
+  for (const button of document.querySelectorAll('#switcher button')) {
+    button.setAttribute('aria-pressed', button.dataset.role === state.role ? 'true' : 'false');
+  }
+  const copy = {
+    overview: operator ? ['Ecosystem overview', 'A shared view of the projects moving Stellar forward.'] : [(current?.name ?? 'Project') + ' overview', (current?.detail ?? 'This project') + '. Other projects stay hidden.'],
+    web: ['Web analytics', operator ? 'Pages, referrers, country, device, and browser across projects.' : 'Pages, referrers, country, device, and browser.'],
+    api: ['API analytics', 'Volume, status, and latency for the selected range.'],
+    compare: ['Projects', operator ? 'Sort, filter, and read projects side by side.' : 'This key can see only its own project.'],
+    integration: ['Integration', 'The pinned script, and the live collector.'],
+    manage: ['SCF managing', 'List a project, remove one that is not on Stellar, and mint or revoke a metrics key.'],
+    privacy: ['Data & privacy', 'Erase sample web or API data, or remove a project from this session.'],
+  }[state.view];
+  title.textContent = copy[0];
+  lede.textContent = copy[1];
+  document.title = copy[0] + ' · Stellar ecosystem analytics';
+  let html = '';
+  if (state.view === 'overview') {
+    html = overviewKpis(data) + activity(ids) + apiCurve(ids) + projectTable(ids) + facts();
+  } else if (state.view === 'web') {
+    const rows = ids.flatMap((id) => stats(id).pages);
+    html = webKpis(data) + metricBoard(ids) + qualityCharts(ids) + '<div class="cols">' +
+      metricCol('pages', ids) + metricCol('referrers', ids) + metricCol('countries', ids) + metricCol('browsers', ids) + metricCol('devices', ids) + metricCol('os', ids) +
+      '</div>' + privacyCard() + '<section class="panel" style="margin-top:12px"><h2>Paths</h2>' + webTable(rows, operator) +
+      '<p class="caption">Account, contract, and muxed addresses collapse, so one key does not become its own row.</p></section>' + facts();
+  } else if (state.view === 'api') {
+    const ok = data.requests - data.errors - data.client;
+    html = apiKpis(data) + apiCurve(ids) + '<div class="layout two"><section class="panel"><h2>HTTP status distribution</h2>' + statusPie(data) + '<div class="mini"><div><span>2xx · Successful</span><span class="num">' + num(ok) + '</span></div><div><span>4xx · Client error</span><span class="num">' + num(data.client) + '</span></div><div><span>5xx · Server error</span><span class="num">' + num(data.errors) + '</span></div></div></section>' + latencyChart(ids) + '</div><section class="panel" style="margin-top:12px"><h2>Normalized endpoints</h2>' + filters(operator) + apiTable(visibleApi(ids), operator) + '</section>' + tryPanel() + facts();
+  } else if (state.view === 'manage') {
+    html = manageView();
+  } else if (state.view === 'privacy') {
+    html = privacyView();
+  } else if (state.view === 'compare' && ids.length > 1) {
+    const [left, right] = ids.map(stats);
+    const metrics = [
+      ['Pageviews', num(left.views), num(right.views)],
+      ['Visitors', num(left.visitors), num(right.visitors)],
+      ['Bounce rate', pct(left.bounce), pct(right.bounce)],
+      ['Visit duration', duration(left.duration), duration(right.duration)],
+      ['Top referrer', left.referrers[0].name, right.referrers[0].name],
+      ['Top country', left.countries[0].name, right.countries[0].name],
+      ['API requests', num(left.requests), num(right.requests)],
+      ['Error rate', pct(left.errorRate), pct(right.errorRate)],
+      ['p95', ms(left.p95), ms(right.p95)],
+    ];
+    html = projectTable(ids) + '<section class="panel" style="margin-top:12px"><h2>Same numbers</h2><div class="table-wrap"><table><thead><tr><th>Metric</th><th>' + esc(nameOf(left.id)) + '</th><th>' + esc(nameOf(right.id)) + '</th></tr></thead><tbody>' +
+      metrics.map((row) => '<tr><td>' + row[0] + '</td><td class="num">' + esc(row[1]) + '</td><td class="num">' + esc(row[2]) + '</td></tr>').join('') +
+      '</tbody></table></div></section><section class="panel" style="margin-top:12px"><h2>Routes</h2>' + filters(true) + apiTable(visibleApi(ids), true) + '</section>';
+  } else if (state.view === 'compare') {
+    html = ids.map(projectCard).join('');
+  } else {
+    html = '<section class="panel"><h2>One tenant. Web and API.</h2><p class="quiet">A project key sees only its own rows. The operator key reads every project. The buttons below hit the live collector.</p></section>' + install() + '<div class="layout" style="margin-top:12px">' + actions() + '</div>' + '<div class="layout two">' + otelPanel() + '</div>';
+  }
+  const restoreSearch = document.activeElement?.id === 'project-search';
+  stage.innerHTML = html;
+  stage.classList.toggle('enter', animate);
+  const sort = document.querySelector('#project-sort');
+  if (sort) sort.value = state.projectSort;
+  if (restoreSearch) {
+    const search = document.querySelector('#project-search');
+    if (search) {
+      search.focus();
+      const end = search.value.length;
+      search.setSelectionRange(end, end);
+    }
+  }
+  bindCharts();
+}
+function selectRole(role, token, tenantId) {
+  state.role = role;
+  state.token = token;
+  state.tenantId = tenantId || '';
+  state.project = 'all';
+  state.receipt = null;
+  document.querySelector('#app').hidden = false;
+  document.querySelector('#gate').hidden = true;
+  render();
+}
+function closeWorkspace() {
+  document.querySelector('#switcher').hidden = true;
+  document.querySelector('#workspace').setAttribute('aria-expanded', 'false');
+}
+function workspaceItem(role, token, tenantId, label, mark) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.role = role;
+  button.innerHTML = '<span class="avatar">' + mark + '</span><span>' + label + '</span>';
+  button.addEventListener('click', () => {
+    closeWorkspace();
+    selectRole(role, token, tenantId);
+  });
+  return button;
+}
+function buildSwitcher() {
+  const host = document.querySelector('#switcher');
+  host.replaceChildren();
+  for (const tenant of state.roster.tenants) {
+    const profile = PROFILES[tenant.id];
+    host.append(workspaceItem(tenant.id, tenant.token, tenant.id, profile?.name ?? tenant.id, (profile?.name ?? tenant.id)[0]));
+  }
+  host.append(workspaceItem('operator', state.roster.operatorToken, '', 'SCF · All projects', 'S'));
+}
+function buildRange() {
+  const labels = { '24h': 'Last 24 hours', '7d': 'Last 7 days', '30d': 'Last 30 days', '90d': 'Last 90 days' };
+  const host = document.querySelector('#range');
+  for (const range of RANGES) {
+    const option = document.createElement('option');
+    option.value = range;
+    option.textContent = labels[range];
+    host.append(option);
+  }
+  host.addEventListener('change', () => { state.range = host.value; render(); });
+}
+async function run(action) {
+  if (state.busy) return;
+  state.busy = true;
+  render();
+  try {
+    if (action === 'page') {
+      const raw = '/accounts/' + ACCOUNT + '/';
+      const response = await fetch('/s/e', { method: 'POST', headers: headers(), body: JSON.stringify({ path: raw }) });
+      const body = await response.json();
+      if (response.ok) {
+        const extra = state.extra[state.tenantId];
+        extra.views += 1;
+        extra.paths['/accounts/:account'] = (extra.paths['/accounts/:account'] || 0) + 1;
+        state.receipt = { tone: 'ok', title: 'Page view stored', rows: [['Sent', raw], ['Stored', body.path]] };
+      } else {
+        state.receipt = { tone: 'bad', title: 'Page view rejected', rows: [['Reason', body.error || String(response.status)]] };
+      }
+    } else if (action === 'api') {
+      const route = '/accounts/' + ACCOUNT + '/payments/42/';
+      const response = await fetch('/v1/traces', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          resourceSpans: [{
+            resource: { attributes: [
+              { key: 'tenant.id', value: { stringValue: state.tenantId } },
+              { key: 'service.name', value: { stringValue: 'payments' } },
+            ] },
+            scopeSpans: [{ spans: [{
+              traceId: 'not-stored',
+              startTimeUnixNano: '0',
+              endTimeUnixNano: '80000000',
+              attributes: [
+                { key: 'http.route', value: { stringValue: route } },
+                { key: 'http.response.status_code', value: { intValue: 200 } },
+              ],
+            }] }],
+          }],
+          resourceLogs: [{ scopeLogs: [{ logRecords: [{ body: { stringValue: 'card number was here' } }] }] }],
+        }),
+      });
+      const body = await response.json();
+      if (response.ok) {
+        const extra = state.extra[state.tenantId];
+        const key = 'payments|/accounts/:account/payments/:id|200';
+        extra.api[key] = (extra.api[key] || 0) + 1;
+        state.receipt = { tone: 'ok', title: 'Request counted', rows: [['Kept', body.retained || 'route, status, latency'], ['Dropped', body.droppedSpans + ' span, ' + body.droppedLogs + ' log'], ['Not returned', 'trace id and log line']] };
+      } else {
+        state.receipt = { tone: 'bad', title: 'Request rejected', rows: [['Reason', body.error || String(response.status)]] };
+      }
+    } else if (action === 'peek') {
+      const other = state.tenantId === 'beta' ? 'alpha' : 'beta';
+      const response = await fetch('/metrics/api?tenant=' + other, { headers: headers() });
+      const body = await response.json();
+      state.receipt = response.status === 403
+        ? { tone: 'blocked', title: 'Refused, as designed', rows: [['Asked for', nameOf(other)], ['Response', '403'], ['Meaning', body.error || 'a project cannot read another project']] }
+        : { tone: 'bad', title: 'Isolation failed', rows: [['Response', String(response.status)]] };
+    }
+  } catch (error) {
+    state.receipt = { tone: 'bad', title: 'Request failed', rows: [['Reason', error instanceof Error ? error.message : 'error']] };
+  } finally {
+    state.busy = false;
+    render();
+  }
+}
+
+function openView(event) {
+  const button = event.target.closest('[data-view]');
+  if (!button || button.hidden) return;
+  state.view = button.dataset.view;
+  render();
+}
+document.querySelector('#nav').addEventListener('click', openView);
+document.querySelector('#tabs').addEventListener('click', openView);
+document.querySelector('#workspace').addEventListener('click', () => {
+  const menu = document.querySelector('#switcher');
+  menu.hidden = !menu.hidden;
+  document.querySelector('#workspace').setAttribute('aria-expanded', String(!menu.hidden));
+});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.workspace-menu')) closeWorkspace();
+});
+document.querySelector('#export').addEventListener('click', () => {
+  const data = headline(scopeIds());
+  const file = new Blob([JSON.stringify({ range: state.range, view: state.view, note: 'Sample dashboard numbers.', ...data }, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(file);
+  link.download = 'prism-analytics-' + state.range + '.json';
+  link.click();
+  URL.revokeObjectURL(link.href);
+});
+function openEnroll() {
+  document.querySelector('#enroll-result').textContent = '';
+  document.querySelector('#enroll').hidden = false;
+  document.querySelector('#enroll-id').focus();
+}
+document.querySelector('#add-project').addEventListener('click', openEnroll);
+document.querySelector('#add-side').addEventListener('click', openEnroll);
+stage.addEventListener('input', (event) => {
+  if (event.target.id === 'project-search') {
+    state.projectQuery = event.target.value;
+    render();
+  }
+  if (event.target.id === 'try-path') document.querySelector('#try-out').textContent = previewPath(event.target.value);
+  if (event.target.id === 'privacy-reason') state.privacyReason = event.target.value;
+  if (event.target.id === 'privacy-confirm') state.privacyConfirm = event.target.value;
+});
+stage.addEventListener('change', (event) => {
+  if (event.target.id === 'project-sort') {
+    state.projectSort = event.target.value;
+    render();
+  }
+  if (event.target.id === 'privacy-project') {
+    state.privacyProject = event.target.value;
+    state.privacyStep = '';
+    state.privacyConfirm = '';
+    render();
+  }
+  if (event.target.id === 'privacy-stream') {
+    state.privacyStream = event.target.value;
+    state.privacyStep = '';
+    render();
+  }
+  if (event.target.id === 'privacy-period') {
+    state.privacyPeriod = event.target.value;
+    state.privacyStep = '';
+    render();
+  }
+});
+document.querySelector('#enroll-cancel').addEventListener('click', () => { document.querySelector('#enroll').hidden = true; });
+document.querySelector('#enroll form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const id = document.querySelector('#enroll-id').value.trim();
+  const result = document.querySelector('#enroll-result');
+  if (!id) { result.textContent = 'A project id is required.'; return; }
+  const response = await fetch('/tenants', { method: 'POST', headers: headers(), body: JSON.stringify({ id }) });
+  const body = await response.json();
+  if (response.ok && !state.waiting.some((item) => item.id === id) && !PROFILES[id]) {
+    state.waiting.push({ id, name: id, detail: 'Just enrolled', proof: 'Self-serve enrollment', status: state.approval ? 'pending' : 'hidden' });
+  }
+  result.textContent = response.ok ? 'Enrolled ' + id + '. It is not listed until SCF says so. Token: ' + body.token : (body.error || 'Could not enroll.');
+});
+stage.addEventListener('click', async (event) => {
+  const privacy = event.target.closest('[data-privacy]');
+  if (privacy) {
+    const act = privacy.dataset.privacy;
+    if (act === 'erase' || act === 'remove') {
+      state.privacyAction = act;
+      state.privacyStep = '';
+      state.privacyConfirm = '';
+      render();
+      return;
+    }
+    if (act === 'cancel') {
+      state.privacyStep = '';
+      state.privacyConfirm = '';
+      render();
+      return;
+    }
+    if (act === 'review') {
+      if (!state.privacyReason.trim() || privacy.disabled) return;
+      state.privacyStep = 'confirm';
+      state.privacyConfirm = '';
+      render();
+      return;
+    }
+    if (act === 'confirm') {
+      const id = state.privacyProject;
+      if (state.privacyConfirm !== nameOf(id)) {
+        state.privacyError = 'Type ' + nameOf(id) + ' exactly.';
+        render();
+        return;
+      }
+      state.privacyError = '';
+      applyErasure(id, state.privacyAction, state.privacyStream, state.privacyPeriod, state.privacyReason.trim());
+      state.privacyReason = '';
+      state.privacyConfirm = '';
+      state.privacyStep = '';
+      render();
+    }
+    return;
+  }
+  const managed = event.target.closest('[data-manage]');
+  if (managed) {
+    const act = managed.dataset.manage;
+    const id = managed.dataset.id;
+    const waiting = state.waiting.find((item) => item.id === id);
+    if (act === 'open') state.approval = false;
+    if (act === 'approval') state.approval = true;
+    if (act === 'list') {
+      delete state.removed[id];
+      if (waiting) waiting.status = 'listed';
+      else state.listing[id] = 'listed';
+    }
+    if (act === 'hide') {
+      if (waiting) waiting.status = 'hidden';
+      else state.listing[id] = 'hidden';
+    }
+    if (act === 'remove') state.removed[id] = true;
+    if (act === 'restore') {
+      delete state.removed[id];
+      if (waiting) waiting.status = 'hidden';
+      else state.listing[id] = 'hidden';
+    }
+    if (act === 'mint') {
+      const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let suffix = '';
+      for (let index = 0; index < 8; index += 1) suffix += alphabet[Math.floor(Math.random() * alphabet.length)];
+      const token = 'scf_mtr_' + suffix;
+      state.keys.unshift({ id: suffix, name: 'Metrics key', hint: token, revoked: false });
+      state.freshKey = token;
+    }
+    if (act === 'revoke') {
+      const key = state.keys.find((item) => item.id === id);
+      if (key) key.revoked = true;
+      if (state.freshKey && key && state.freshKey === key.hint) state.freshKey = '';
+    }
+    render();
+    return;
+  }
+  const pick = event.target.closest('[data-metric]');
+  if (pick) {
+    if (pick.dataset.metric === 'traffic') {
+      state.metric = '';
+      state.slice = '';
+    } else if (pick.dataset.slice) {
+      state.metric = pick.dataset.metric;
+      state.slice = pick.dataset.slice;
+    } else if (state.metric !== pick.dataset.metric) {
+      state.metric = pick.dataset.metric;
+      state.slice = '';
+    }
+    state.view = 'web';
+    render();
+    return;
+  }
+  const action = event.target.closest('[data-action]');
+  const filter = event.target.closest('[data-filter]');
+  const sort = event.target.closest('[data-sort]');
+  if (filter) {
+    state[filter.dataset.filter] = filter.dataset.value;
+    render();
+    return;
+  }
+  if (sort) {
+    state.sort = sort.dataset.sort;
+    render();
+    return;
+  }
+  const open = event.target.closest('[data-open]');
+  if (open) {
+    const tenant = state.roster.tenants.find((item) => item.id === open.dataset.open);
+    if (tenant) selectRole(tenant.id, tenant.token, tenant.id);
+    return;
+  }
+  if (!action || action.disabled) return;
+  if (action.dataset.action === 'compare') {
+    state.view = 'compare';
+    render();
+    return;
+  }
+  if (action.dataset.action === 'copy') {
+    try {
+      await navigator.clipboard.writeText(SNIPPET);
+      action.textContent = 'Copied';
+    } catch {
+      action.textContent = 'Select the tag';
+    }
+    setTimeout(() => { action.textContent = 'Copy'; }, 1200);
+    return;
+  }
+  await run(action.dataset.action);
+});
+document.querySelector('#gate form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const token = document.querySelector('#token').value.trim();
+  const probe = await fetch('/metrics/web?all=1', { headers: { authorization: 'Bearer ' + token } });
+  if (probe.status === 401) {
+    document.querySelector('#gate-error').textContent = 'Unknown token.';
+    return;
+  }
+  state.roster = state.roster ?? { tenants: [] };
+  if (!state.switchReady) buildSwitcher();
+  if (probe.ok) selectRole('operator', token, '');
+  else selectRole('token', token, '');
+});
+
+buildRange();
+const roster = await fetch('/demo/roster');
+if (roster.ok) {
+  state.roster = await roster.json();
+  state.switchReady = true;
+  buildSwitcher();
+  selectRole('operator', state.roster.operatorToken, '');
+} else {
+  document.querySelector('#gate').hidden = false;
+}
+
+  </script>
+</body>
+</html>
